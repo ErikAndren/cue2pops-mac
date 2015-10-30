@@ -1,0 +1,24 @@
+CUE2POPS Version 2.0
+
+
+
+**************************************
+TRAINERS
+**************************************
+
+Crash Bandicoot [SCES-00344]
+- Enable Test Save System
+
+Crash Bandicoot [SCUS-94900]
+- Enable Test Save System
+
+Crash Bandicoot [SCPS-10031]
+- Enable Test Save System
+
+
+**************************************
+FIXES
+**************************************
+
+Metal Gear Solid : Special Missions [SLES-02136]
+- Disc Swap Fix
