@@ -303,7 +303,6 @@ int main(int argc, char **argv)
 		printf("%s mygame.cue gap++ vmode trainer IMAGE0.VCD\n", argv[0]);
 		printf("%s mygame.cue gap-- vmode trainer IMAGE0.VCD\n", argv[0]);
 		printf("Commands and output file are optional.\n\n");
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -324,7 +323,6 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[2], "trainer")) 	trainer = 1;
 		else {
 			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 3 , argv[2]);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		if(!strcmp(argv[3], "gap++")) 			gap_more = 1;
@@ -341,7 +339,6 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[2], "trainer")) 	trainer = 1;
 		else {
 			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 4 , argv[2]);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		if(!strcmp(argv[3], "gap++")) 			gap_more = 1;
@@ -350,7 +347,6 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[3], "trainer")) 	trainer = 1;
 		else {
 			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 3 , argv[3]);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		if(!strcmp(argv[4], "gap++")) 			gap_more = 1;
@@ -367,7 +363,6 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[2], "trainer")) 	trainer = 1;
 		else {
 			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 4 , argv[2]);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		if(!strcmp(argv[3], "gap++")) 			gap_more = 1;
@@ -376,7 +371,6 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[3], "trainer")) 	trainer = 1;
 		else {
 			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 3 , argv[3]);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		if(!strcmp(argv[4], "gap++")) 			gap_more = 1;
@@ -385,7 +379,6 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[4], "trainer")) 	trainer = 1;
 		else {
 			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 2 , argv[4]);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		// argv[5] is the output file name
@@ -422,13 +415,11 @@ int main(int argc, char **argv)
 		printf("%s mygame.cue gap++ vmode trainer IMAGE0.VCD\n", argv[0]);
 		printf("%s mygame.cue gap-- vmode trainer IMAGE0.VCD\n", argv[0]);
 		printf("Commands and output file are optional.\n\n");
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
 	if(gap_more == 1 && gap_less == 1) { // User is dumb
 		printf("Syntax Error : Conflicting gap++/gap-- arguments.\n\n");
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -443,7 +434,6 @@ int main(int argc, char **argv)
 
 	if(!(file = fopen(argv[1], "rb"))) { // Open the cue sheet
 		printf("Error: Cannot open %s\n\n", argv[1]);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 	fseek(file, 0, SEEK_END);
@@ -458,7 +448,6 @@ int main(int argc, char **argv)
 	if((ptr[0] != '0') || (ptr[1] != '0')) {
 		printf("Error: The cue sheet is not valid\n\n");
 		free(cuebuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -467,7 +456,6 @@ int main(int argc, char **argv)
 	if(ptr[0] != 0x22) {
 		printf("Error: The cue sheet is not valid\n\n");
 		free(cuebuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -493,7 +481,6 @@ int main(int argc, char **argv)
 			printf("Error: Cannot find %s that is linked to the cue sheet\n\n", ptr);
 			free(cuebuf);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		} else { // Here we've got the full CUE path. We're gonna use it to make the BIN path.
 			strcpy(dumpaddr, argv[1]);
@@ -596,7 +583,6 @@ int main(int argc, char **argv)
 		free(cuebuf);
 		free(dumpaddr);
 		free(headerbuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -628,7 +614,6 @@ int main(int argc, char **argv)
 		free(cuebuf);
 		free(dumpaddr);
 		free(headerbuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 	if((track_count == 0) || (track_count != index1_count)) { // Huh ?
@@ -636,7 +621,6 @@ int main(int argc, char **argv)
 		free(cuebuf);
 		free(dumpaddr);
 		free(headerbuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 	if(binary_count != 1 || wave_count != 0) { // I urd u liek warez^^
@@ -644,7 +628,6 @@ int main(int argc, char **argv)
 		free(cuebuf);
 		free(dumpaddr);
 		free(headerbuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -969,7 +952,6 @@ int main(int argc, char **argv)
 	if(GetLeadOut() != 1) {
 		free(dumpaddr);
 		free(headerbuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
@@ -997,7 +979,6 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[2]);
 			free(dumpaddr);
 			free(headerbuf);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		fwrite(headerbuf, 1, headersize, file);
@@ -1008,14 +989,12 @@ int main(int argc, char **argv)
 		if(!(file = fopen(argv[2], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 
 		if(!(leech = fopen(dumpaddr, "rb"))) {
 			printf("Error: Cannot open %s\n\n", dumpaddr);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		free(dumpaddr);
@@ -1068,7 +1047,6 @@ int main(int argc, char **argv)
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[2]);
-		if(batch == 0) system("pause");
 		return 1;
 	}
 
@@ -1079,7 +1057,6 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[3]);
 			free(dumpaddr);
 			free(headerbuf);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		fwrite(headerbuf, 1, headersize, file);
@@ -1090,14 +1067,12 @@ int main(int argc, char **argv)
 		if(!(file = fopen(argv[3], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 
 		if(!(leech = fopen(dumpaddr, "rb"))) {
 			printf("Error: Cannot open %s\n\n", dumpaddr);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		free(dumpaddr);
@@ -1150,7 +1125,6 @@ int main(int argc, char **argv)
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[3]);
-		if(batch == 0) system("pause");
 		return 1;
 	}
 
@@ -1161,7 +1135,6 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[4]);
 			free(dumpaddr);
 			free(headerbuf);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		fwrite(headerbuf, 1, headersize, file);
@@ -1172,14 +1145,12 @@ int main(int argc, char **argv)
 		if(!(file = fopen(argv[4], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 
 		if(!(leech = fopen(dumpaddr, "rb"))) {
 			printf("Error: Cannot open %s\n\n", dumpaddr);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		free(dumpaddr);
@@ -1232,7 +1203,6 @@ int main(int argc, char **argv)
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[4]);
-		if(batch == 0) system("pause");
 		return 1;
 	}
 
@@ -1243,7 +1213,6 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[5]);
 			free(dumpaddr);
 			free(headerbuf);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		fwrite(headerbuf, 1, headersize, file);
@@ -1254,14 +1223,12 @@ int main(int argc, char **argv)
 		if(!(file = fopen(argv[5], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 
 		if(!(leech = fopen(dumpaddr, "rb"))) {
 			printf("Error: Cannot open %s\n\n", dumpaddr);
 			free(dumpaddr);
-			if(batch == 0) system("pause");
 			return 0;
 		}
 		free(dumpaddr);
@@ -1314,7 +1281,6 @@ int main(int argc, char **argv)
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[5]);
-		if(batch == 0) system("pause");
 		return 1;
 	}
 
@@ -1346,7 +1312,6 @@ int main(int argc, char **argv)
 		printf("Error : Cannot write to %s\n\n", argv[1]);
 		free(dumpaddr);
 		free(headerbuf);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 	fwrite(headerbuf, 1, headersize, file);
@@ -1357,14 +1322,12 @@ int main(int argc, char **argv)
 	if(!(file = fopen(argv[1], "ab+"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
 		free(dumpaddr);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 
 	if(!(leech = fopen(dumpaddr, "rb"))) {
 		printf("Error: Cannot open %s\n\n", dumpaddr);
 		free(dumpaddr);
-		if(batch == 0) system("pause");
 		return 0;
 	}
 	free(dumpaddr);
@@ -1417,8 +1380,6 @@ int main(int argc, char **argv)
 
 	printf("A POPS virtual CD-ROM image was saved to :\n");
 	printf("%s\n\n", argv[1]);
-
-	if(batch == 0) system("pause");
 
 	return 1;
 }
