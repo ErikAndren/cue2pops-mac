@@ -479,11 +479,10 @@ int main(int argc, char **argv)
 		    break; // YES !
 		  }
 		}
-		if(i == 0) { // No path in argv[1] + No path in the cuesheet ? Then it's FUQD :( .
-			printf("Error: Cannot find %s that is linked to the cue sheet\n\n", ptr);
-			free(cuebuf);
-			free(dumpaddr);
-			return 0;
+
+		if(i == 0) {
+		  // Having a filename without hierarchy is perfectly ok.
+		  strcpy(dumpaddr, argv[1]);
 		} else { // Here we've got the full CUE path. We're gonna use it to make the BIN path.
 			strcpy(dumpaddr, argv[1]);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
