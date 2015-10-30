@@ -10,7 +10,12 @@
 #include <inttypes.h>
 #include <time.h>
 
-int debug = 0;			// Else than zero, printf some dbg stuff
+#ifdef DEBUG
+  int debug = 1;
+#elif
+  int debug = 0;
+#endif
+
 int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
 
 FILE *file, *leech; //file is used for opening the input cue and the output file, leech is used for opening the BIN that's attached to the cue.

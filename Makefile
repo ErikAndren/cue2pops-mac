@@ -4,7 +4,7 @@ SRC = cue2pops.c
 CC = gcc
 CFLAGS = -Wall -Wextra
 
-CFLAGS_DEBUG = $(CFLAGS) -O0 -g
+CFLAGS_DEBUG = $(CFLAGS) -O0 -g -DDEBUG
 
 TARGET = cue2pops
 
