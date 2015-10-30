@@ -468,14 +468,16 @@ int main(int argc, char **argv)
 	dumpaddr = malloc((strlen(ptr) + strlen(argv[1])) * 2);
 
 	for(i = strlen(ptr); i > 0; i--) { // Does the cue have the full BINARY path ?
-		if(ptr[i] == 0x5C) { // YES !
+	  if((ptr[i] == '\\') || (ptr[i] == '/')) { // YES !
 			strcpy(dumpaddr, ptr);
 			break;
 		}
 	}
 	if(i == 0) { // If no..
 		for(i = strlen(argv[1]); i > 0; i--) { // Does the arg have the full cue path ?
-			if(argv[1][i] == 0x5C) break;// YES !
+		  if((argv[1][i] == '\\') || (argv[1][i] == '/')) {
+		    break; // YES !
+		  }
 		}
 		if(i == 0) { // No path in argv[1] + No path in the cuesheet ? Then it's FUQD :( .
 			printf("Error: Cannot find %s that is linked to the cue sheet\n\n", ptr);
@@ -486,7 +488,8 @@ int main(int argc, char **argv)
 			strcpy(dumpaddr, argv[1]);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
 			for(i = strlen(dumpaddr); i > 0; i--) {
-				if(dumpaddr[i] == 0x5C) break;
+			  if((dumpaddr[i] == '\\') || (dumpaddr[i] == '/'))
+			     break;
 			}
 			for(i = i+1; (unsigned long) i < strlen(dumpaddr); i++) dumpaddr[i] = 0x00; // How kewl is dat ?
 			/* Me no liek strncat */
