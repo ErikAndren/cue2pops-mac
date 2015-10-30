@@ -12,7 +12,7 @@
 
 #ifdef DEBUG
   int debug = 1;
-#elif
+#else
   int debug = 0;
 #endif
 
