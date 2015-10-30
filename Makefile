@@ -23,7 +23,7 @@ debug:
 	$(CC) $(CFLAGS_DEBUG) $(SRC) -o $(TARGET)
 
 
-install:
+install: cue2pops
 	$(CP) $(TARGET) $(INSTALL_DIR)
 
 clean:
