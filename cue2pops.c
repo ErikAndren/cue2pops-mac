@@ -501,7 +501,7 @@ int main(int argc, char **argv)
 			for(i = strlen(dumpaddr); i > 0; i--) {
 				if(dumpaddr[i] == 0x5C) break;
 			}
-			for(i = i+1; i < strlen(dumpaddr); i++) dumpaddr[i] = 0x00; // How kewl is dat ?
+			for(i = i+1; (unsigned long) i < strlen(dumpaddr); i++) dumpaddr[i] = 0x00; // How kewl is dat ?
 			/* Me no liek strncat */
 			i = strlen(dumpaddr);
 			strcpy(dumpaddr + i, ptr);
