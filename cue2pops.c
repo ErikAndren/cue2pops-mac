@@ -1321,7 +1321,7 @@ int main(int argc, char **argv)
 
 	/* Default, if none of the above cases returned or argc == 2, output file is the input file name plus the extension ".VCD" */
 	i = strlen(argv[1]);
-	for(i = i; i > 0; i--) { // Search the extension ".cue" and ".CUE" in the input file name
+	for(; i > 0; i--) { // Search the extension ".cue" and ".CUE" in the input file name
 		if((argv[1][i] == '.' && argv[1][i+1] == 'c' && argv[1][i+2] == 'u' && argv[1][i+3] == 'e') || (argv[1][i] == '.' && argv[1][i+1] == 'C' && argv[1][i+2] == 'U' && argv[1][i+3] == 'E'))
 		break;
 	}
