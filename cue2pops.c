@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 	char *ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
 	char answer[3]; // Where the user answer is stored. Used in the CDRWIN fix prompt shit
 
-	char *headerbuf; // Buffer for the POPS header
+	unsigned char *headerbuf; // Buffer for the POPS header
 	unsigned char outbuf[headersize]; // File I/O cache
 	int header_ptr = 20; // Integer that points to a location of the POPS header buffer. Decimal 20 is the start of the descriptor "A2"
 	int i; // Tracker
