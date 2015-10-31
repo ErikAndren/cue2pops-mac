@@ -27,7 +27,7 @@ int gap_more = 0; // User command status (gap++)
 int gap_less = 0; // User command status (gap--)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
-char LeadOut[6]; // Formatted Lead-Out MM:SS:FF
+char LeadOut[7]; // Formatted Lead-Out MM:SS:FF
 int dumpsize; // BIN (disc image) size
 int sector_count; // Calculated number of sectors
 int leadoutM; // Calculated Lead-Out MM:__:__
