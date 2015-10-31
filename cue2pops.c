@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 	int noCDDA = 0; // 2013/04/22 - v1.2 : Is set to 1 if no CDDA track was found in the game dump, used by the NTSC patcher
 
 	printf("\nBIN/CUE to IMAGE0.VCD conversion tool v2.0\n");
-	printf("Last modified : 2013/05/16\n\n");
+	printf("Last modified: %s\n\n", __DATE__);
 
 	if(argc <= 1) {
 		printf("Error: No input file specified (cue sheet)\n\n");
