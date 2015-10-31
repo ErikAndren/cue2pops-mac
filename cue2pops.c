@@ -487,7 +487,7 @@ int main(int argc, char **argv)
 
 		if(i == 0) {
 		  // Having a filename without hierarchy is perfectly ok.
-		  strcpy(dumpaddr, argv[1]);
+		  strcpy(dumpaddr, ptr);
 		} else { // Here we've got the full CUE path. We're gonna use it to make the BIN path.
 			strcpy(dumpaddr, argv[1]);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
