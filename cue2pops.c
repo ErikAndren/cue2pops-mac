@@ -18,7 +18,7 @@
 
 const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
 
-FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
+FILE *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
 const int SECTORSIZE = 2352; // Sector size
 const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
@@ -1048,19 +1048,21 @@ int main(int argc, char **argv)
 
 	/* 2 user arguments : no command, output file is user argument 2 */
 	if(gap_more == 0 && gap_less == 0 && vmode == 0 && trainer == 0 && argc == 3) {
+		FILE *vcd_file;
+
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(file = fopen(argv[2], "wb"))) {
+		if(!(vcd_file = fopen(argv[2], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
 			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, HEADERSIZE, file);
-		fclose(file);
+		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
+		fclose(vcd_file);
 		free(headerbuf);
 
 
-		if(!(file = fopen(argv[2], "ab+"))) {
+		if(!(vcd_file = fopen(argv[2], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
 			free(bin_path);
 			return 0;
@@ -1077,11 +1079,11 @@ int main(int argc, char **argv)
 			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
 				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, vcd_file);
 				char padding[(150 * SECTORSIZE) * 2];
-				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fwrite(padding, 150 * SECTORSIZE, 1, vcd_file);
 				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, vcd_file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1104,8 +1106,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
-					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
-				} else fwrite(outbuf, HEADERSIZE, 1, file);
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
+				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1117,7 +1119,7 @@ int main(int argc, char **argv)
 			printf("----------------------------------------------------------------------------------\n");
 		}
 		fclose(bin_file);
-		fclose(file);
+		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[2]);
@@ -1126,19 +1128,21 @@ int main(int argc, char **argv)
 
 	/* 3 user arguments : 1 command, the command is user argument 2, output file is user argument 3 */
 	if(((gap_more == 0 && vmode == 0 && trainer == 1) || (gap_less == 0 && vmode == 0 && trainer == 1) || (gap_more == 1 && vmode == 0 && trainer == 0) || (gap_less == 1 && vmode == 0 && trainer == 0) || (gap_more == 0 && gap_less == 0 && vmode == 1 && trainer == 0)) && argc == 4) {
+		FILE *vcd_file;
+
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(file = fopen(argv[3], "wb"))) {
+		if(!(vcd_file = fopen(argv[3], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
 			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, HEADERSIZE, file);
-		fclose(file);
+		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
+		fclose(vcd_file);
 		free(headerbuf);
 
 
-		if(!(file = fopen(argv[3], "ab+"))) {
+		if(!(vcd_file = fopen(argv[3], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
 			free(bin_path);
 			return 0;
@@ -1155,11 +1159,11 @@ int main(int argc, char **argv)
 			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
 				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, vcd_file);
 				char padding[(150 * SECTORSIZE) * 2];
-				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fwrite(padding, 150 * SECTORSIZE, 1, vcd_file);
 				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, vcd_file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1182,8 +1186,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
-					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
-				} else fwrite(outbuf, HEADERSIZE, 1, file);
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
+				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1195,7 +1199,7 @@ int main(int argc, char **argv)
 			printf("----------------------------------------------------------------------------------\n");
 		}
 		fclose(bin_file);
-		fclose(file);
+		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[3]);
@@ -1204,19 +1208,21 @@ int main(int argc, char **argv)
 
 	/* 4 user arguments : 2 commands, commands are user arguments 2 and 3, output file is user argument 4 */
 	if(((gap_more == 1 && vmode == 0 && trainer == 1) || (gap_less == 1 && vmode == 0 && trainer == 1) || (gap_more == 1 && vmode == 1 && trainer == 0) || (gap_less == 1 && vmode == 1 && trainer == 0) || (gap_more == 0 && gap_less == 0 && vmode == 1 && trainer == 1)) && argc == 5) {
+		FILE *vcd_file;
+
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(file = fopen(argv[4], "wb"))) {
+		if(!(vcd_file = fopen(argv[4], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
 			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, HEADERSIZE, file);
-		fclose(file);
+		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
+		fclose(vcd_file);
 		free(headerbuf);
 
 
-		if(!(file = fopen(argv[4], "ab+"))) {
+		if(!(vcd_file = fopen(argv[4], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
 			free(bin_path);
 			return 0;
@@ -1233,11 +1239,11 @@ int main(int argc, char **argv)
 			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
 				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, vcd_file);
 				char padding[(150 * SECTORSIZE) * 2];
-				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fwrite(padding, 150 * SECTORSIZE, 1, vcd_file);
 				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, vcd_file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1260,8 +1266,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
-					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
-				} else fwrite(outbuf, HEADERSIZE, 1, file);
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
+				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1273,7 +1279,7 @@ int main(int argc, char **argv)
 			printf("----------------------------------------------------------------------------------\n");
 		}
 		fclose(bin_file);
-		fclose(file);
+		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[4]);
@@ -1282,19 +1288,20 @@ int main(int argc, char **argv)
 
 	/* 5 user arguments : 3 commands; Commands are user arguments 2, 3 and 4; Output file is user argument 5 */
 	if(argc == 6) {
+		FILE *vcd_file;
+
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(file = fopen(argv[5], "wb"))) {
+		if(!(vcd_file = fopen(argv[5], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
 			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, HEADERSIZE, file);
-		fclose(file);
+		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
+		fclose(vcd_file);
 		free(headerbuf);
 
-
-		if(!(file = fopen(argv[5], "ab+"))) {
+		if(!(vcd_file = fopen(argv[5], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
 			free(bin_path);
 			return 0;
@@ -1311,11 +1318,11 @@ int main(int argc, char **argv)
 			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
 				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, vcd_file);
 				char padding[(150 * SECTORSIZE) * 2];
-				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fwrite(padding, 150 * SECTORSIZE, 1, vcd_file);
 				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, vcd_file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1338,8 +1345,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
-					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
-				} else fwrite(outbuf, HEADERSIZE, 1, file);
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
+				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1351,13 +1358,14 @@ int main(int argc, char **argv)
 			printf("----------------------------------------------------------------------------------\n");
 		}
 		fclose(bin_file);
-		fclose(file);
+		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
 		printf("%s\n\n", argv[5]);
 		return 1;
 	}
 
+	FILE *vcd_file;
 
 	/* Default, if none of the above cases returned or argc == 2, output file is the input file name plus the extension ".VCD" */
 	i = strlen(argv[1]);
@@ -1382,18 +1390,18 @@ int main(int argc, char **argv)
 	}
 
 	printf("Saving the virtual CD-ROM image. Please wait...\n");
-	if(!(file = fopen(argv[1], "wb"))) {
+	if(!(vcd_file = fopen(argv[1], "wb"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
 		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
-	fwrite(headerbuf, 1, HEADERSIZE, file);
-	fclose(file);
+	fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
+	fclose(vcd_file);
 	free(headerbuf);
 
 
-	if(!(file = fopen(argv[1], "ab+"))) {
+	if(!(vcd_file = fopen(argv[1], "ab+"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
 		free(bin_path);
 		return 0;
@@ -1410,11 +1418,11 @@ int main(int argc, char **argv)
 		if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 			if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
 			fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
-			fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+			fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, vcd_file);
 			char padding[(150 * SECTORSIZE) * 2];
-			fwrite(padding, 150 * SECTORSIZE, 1, file);
+			fwrite(padding, 150 * SECTORSIZE, 1, vcd_file);
 			fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
-			fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
+			fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, vcd_file);
 			fix_CDRWIN = 0;
 			if(debug != 0) {
 				printf(" Done.\n");
@@ -1437,8 +1445,8 @@ int main(int argc, char **argv)
 			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 			if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 			if(i + HEADERSIZE >= bin_size) {
-				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
-			} else fwrite(outbuf, HEADERSIZE, 1, file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
+			} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
 		}
 	}
 	if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1450,7 +1458,7 @@ int main(int argc, char **argv)
 		printf("----------------------------------------------------------------------------------\n");
 	}
 	fclose(bin_file);
-	fclose(file);
+	fclose(vcd_file);
 
 	printf("A POPS virtual CD-ROM image was saved to :\n");
 	printf("%s\n\n", argv[1]);
