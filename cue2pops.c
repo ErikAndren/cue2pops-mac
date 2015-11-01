@@ -207,12 +207,37 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 	}
 }
 
+int GetBinSize(char *bin_name)
+{
+	FILE *bin;
+	int status;
+	int size;
+
+	if(!(bin = fopen(bin_name, "rb"))) { // Open the BINARY that is attached to the cue
+		printf("Error: Cannot open %s\n\n", bin_name);
+		return -1;
+	}
+
+	status = fseek(bin, 0, SEEK_END);
+	if (status != 0) {
+		printf("Error: Failed to seek %s\n", bin_name);
+		return -1;
+	}
+
+	size = ftell(bin); // Get it's size
+	if (bin_size == -1L) {
+		printf("Error: Failed to get file %s size\n", bin_name);
+		return -1;
+	}
+	fclose(bin);
+
+	return size;
+}
+
 
 int GetLeadOut(unsigned char *hbuf)
 {
 	/* MSF is calculated from the dump size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
-	FILE *bin;
-	int status;
 
 	// Formatted Lead-Out MM:SS:FF
 	char LeadOut[7];
@@ -220,23 +245,6 @@ int GetLeadOut(unsigned char *hbuf)
 	int leadoutS; // Calculated Lead-Out __:SS:__
 	int leadoutF; // Calculated Lead-Out __:__:FF
 
-	if(!(bin = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
-		printf("Error: Cannot open %s\n\n", bin_path);
-		return -1;
-	}
-
-	status = fseek(bin, 0, SEEK_END);
-	if (status != 0) {
-		printf("Error: Failed to seek %s\n", bin_path);
-		return -1;
-	}
-
-	bin_size = ftell(bin); // Get it's size
-	if (bin_size == -1L) {
-		printf("Error: Failed to get file %s size\n", bin_path);
-		return -1;
-	}
-	fclose(bin);
 
 	sector_count = (bin_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
 	leadoutM = sector_count / 4500;
@@ -978,6 +986,13 @@ int main(int argc, char **argv)
 		}
 	}
 	free(cuebuf);
+
+	bin_size = GetBinSize(bin_path);
+	if (bin_size < 0) {
+		free(bin_path);
+		free(headerbuf);
+		return 0;
+	}
 
 	if(GetLeadOut(headerbuf) != 0) {
 		free(bin_path);
