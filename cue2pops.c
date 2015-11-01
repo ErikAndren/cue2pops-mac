@@ -208,27 +208,27 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 
 int GetFileSize(char *file_name)
 {
-	FILE *bin;
+	FILE *file_handle;
 	int status;
 	int size;
 
-	if(!(bin = fopen(file_name, "rb"))) {
+	if(!(file_handle = fopen(file_name, "rb"))) {
 		printf("Error: Cannot open %s\n\n", file_name);
 		return -1;
 	}
 
-	status = fseek(bin, 0, SEEK_END);
+	status = fseek(file_handle, 0, SEEK_END);
 	if (status != 0) {
 		printf("Error: Failed to seek %s\n", file_name);
 		return -1;
 	}
 
-	size = ftell(bin); // Get it's size
-	if (bin_size == -1L) {
+	size = ftell(file_handle); // Get it's size
+	if (size == -1L) {
 		printf("Error: Failed to get file %s size\n", file_name);
 		return -1;
 	}
-	fclose(bin);
+	fclose(file_handle);
 
 	return size;
 }
