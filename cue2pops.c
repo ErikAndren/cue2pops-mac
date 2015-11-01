@@ -22,10 +22,7 @@ FILE *file, *bin_file; //file is used for opening the input cue and the output f
 char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 const int sectorsize = 2352; // Sector size
 
-int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
 int vmode = 0; // User command status (vmode)
-int gap_more = 0; // User command status (gap++)
-int gap_less = 0; // User command status (gap--)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 int bin_size; // BIN (disc image) size
@@ -291,6 +288,10 @@ int main(int argc, char **argv)
 	int s; // Calculated and formatted __:SS:__ of the current index
 	int f; // Calculated and formatted __:__:FF of the current index
 	int noCDDA = 0; // 2013/04/22 - v1.2 : Is set to 1 if no CDDA track was found in the game dump, used by the NTSC patcher
+
+	int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
+	int gap_more = 0; // User command status (gap++)
+	int gap_less = 0; // User command status (gap--)
 
 	printf("\nBIN/CUE to IMAGE0.VCD conversion tool v2.0\n");
 	printf("Last modified: %s\n\n", __DATE__);
