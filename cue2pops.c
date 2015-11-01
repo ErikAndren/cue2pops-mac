@@ -19,7 +19,6 @@
 const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
 
 FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
-char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 const int SECTORSIZE = 2352; // Sector size
 const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
@@ -277,6 +276,8 @@ int GetLeadOut(unsigned char *hbuf)
 
 int main(int argc, char **argv)
 {
+	char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
+
 	char *cuebuf; // Buffer for the cue sheet
 	int cuesize; // Size of the cue sheet
 	int cue_ptr;  // Indicates the location of the current INDEX 01 entry in the cue sheet
