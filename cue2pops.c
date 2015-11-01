@@ -27,7 +27,6 @@ int gap_more = 0; // User command status (gap++)
 int gap_less = 0; // User command status (gap--)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
-char LeadOut[7]; // Formatted Lead-Out MM:SS:FF
 int bin_size; // BIN (disc image) size
 int sector_count; // Calculated number of sectors
 int leadoutM; // Calculated Lead-Out MM:__:__
@@ -215,11 +214,14 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 }
 
 
-int GetLeadOut(void)
+int GetLeadOut(unsigned char *hbuf)
 {
 	/* MSF is calculated from the dump size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 	FILE *bin;
 	int status;
+	
+	// Formatted Lead-Out MM:SS:FF
+	char LeadOut[7];
 	
 	if(!(bin = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
 		printf("Error: Cannot open %s\n\n", bin_path);
@@ -256,14 +258,12 @@ int GetLeadOut(void)
 	sprintf(&LeadOut[0], "%02d", leadoutM);
 	sprintf(&LeadOut[2], "%02d", leadoutS);
 	sprintf(&LeadOut[4], "%02d", leadoutF);
-	LeadOut[0] = ((LeadOut[0] - 48) * 16) + (LeadOut[1] - 48);
-	LeadOut[1] = ((LeadOut[2] - 48) * 16) + (LeadOut[3] - 48);
-	LeadOut[2] = ((LeadOut[4] - 48) * 16) + (LeadOut[5] - 48);
-	LeadOut[3] = '\0';
-	LeadOut[4] = '\0';
-	LeadOut[5] = '\0';
+	
+	hbuf[27] = ((LeadOut[0] - 48) * 16) + (LeadOut[1] - 48);
+	hbuf[28] = ((LeadOut[2] - 48) * 16) + (LeadOut[3] - 48);
+	hbuf[29] = ((LeadOut[4] - 48) * 16) + (LeadOut[5] - 48);
 	if(debug != 0) {
-		printf("Formatted Lead-Out MSF  = %02X:%02X:%02X\n\n", LeadOut[0], LeadOut[1], LeadOut[2]);
+		printf("Formatted Lead-Out MSF  = %02X:%02X:%02X\n\n", hbuf[27], hbuf[28], hbuf[29]);
 	}
 
 	return 0;
@@ -975,7 +975,7 @@ int main(int argc, char **argv)
 	}
 	free(cuebuf);
 
-	if(GetLeadOut() != 0) {
+	if(GetLeadOut(headerbuf) != 0) {
 		free(bin_path);
 		free(headerbuf);
 		return 0;
@@ -987,9 +987,6 @@ int main(int argc, char **argv)
 		printf("daTrack_ptr LBA         = %d (%Xh)\n\n", daTrack_ptr / sectorsize, daTrack_ptr / sectorsize);
 	}
 
-	headerbuf[27] = LeadOut[0]; //Lead-Out MM
-	headerbuf[28] = LeadOut[1]; //Lead-Out SS
-	headerbuf[29] = LeadOut[2]; //Lead-Out FF
 	memcpy(headerbuf + 1032, &sector_count, 4); // Sector Count (LEHEX)
 	memcpy(headerbuf + 1036, &sector_count, 4); // Sector Count (LEHEX)
 
