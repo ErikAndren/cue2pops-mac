@@ -218,14 +218,26 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 int GetLeadOut(void)
 {
 	/* MSF is calculated from the dump size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
-
-	if(!(file = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
+	FILE *bin;
+	int status;
+	
+	if(!(bin = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
 		printf("Error: Cannot open %s\n\n", bin_path);
 		return -1;
 	}
-	fseek(file, 0, SEEK_END);
-	bin_size = ftell(file); // Get it's size
-	fclose(file);
+	
+	status = fseek(bin, 0, SEEK_END);
+	if (status != 0) {
+		printf("Error: Failed to seek %s\n", bin_path);
+		return -1;
+	}
+
+	bin_size = ftell(bin); // Get it's size
+	if (bin_size == -1L) {
+		printf("Error: Failed to get file %s size\n", bin_path);
+		return -1;
+	}
+	fclose(bin);
 
 	sector_count = (bin_size / sectorsize) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
 	leadoutM = sector_count / 4500;
