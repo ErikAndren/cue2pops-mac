@@ -24,7 +24,6 @@ const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size f
 int vmode = 0; // User command status (vmode)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
-int bin_size; // BIN (disc image) size
 
 int sector_count; // Calculated number of sectors
 int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
@@ -229,7 +228,7 @@ int GetFileSize(char *file_name)
 	return size;
 }
 
-int GetLeadOut(unsigned char *hbuf)
+int GetLeadOut(unsigned char *hbuf, int b_size)
 {
 	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 
@@ -239,14 +238,14 @@ int GetLeadOut(unsigned char *hbuf)
 	int leadoutS; // Calculated Lead-Out __:SS:__
 	int leadoutF; // Calculated Lead-Out __:__:FF
 
-	sector_count = (bin_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
+	sector_count = (b_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the b_size to sector count
 	leadoutM = sector_count / 4500;
 	leadoutS = (sector_count - leadoutM * 4500) / 75;
 	leadoutF = sector_count - leadoutM * 4500 - leadoutS * 75;
 	if(debug != 0) {
 		printf("Calculated Lead-Out MSF = %02d:%02d:%02d\n", leadoutM, leadoutS, leadoutF);
 	}
-	sector_count = (bin_size / SECTORSIZE) + (150 * (pregap_count + postgap_count));
+	sector_count = (b_size / SECTORSIZE) + (150 * (pregap_count + postgap_count));
 	if(debug != 0) {
 		printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
 	}
@@ -272,6 +271,7 @@ int main(int argc, char **argv)
 {
 	FILE *bin_file; //bin_file is used for opening the BIN that's attached to the cue.
 	char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
+	int bin_size; // BIN (disc image) size
 
 	size_t result;
 
@@ -1019,7 +1019,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if(GetLeadOut(headerbuf) != 0) {
+	if(GetLeadOut(headerbuf, bin_size) != 0) {
 		free(bin_path);
 		free(headerbuf);
 		return 0;
