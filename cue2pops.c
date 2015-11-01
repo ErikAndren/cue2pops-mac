@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
 	int index1_count = 0; // Number of "INDEX 01" occurrences in the cue
 	int wave_count = 0; // Number of "WAVE" occurrences in the cue
-	char *ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
+	char *cue_ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
 	char answer[3]; // Where the user answer is stored. Used in the CDRWIN fix prompt shit
 
 	unsigned char *headerbuf; // Buffer for the POPS header
@@ -500,17 +500,17 @@ int main(int argc, char **argv)
 	}
 	fclose(cue_file);
 
-	ptr = strstr(cue_buf, "INDEX 01 ");
-	ptr += 9;
-	if((ptr[0] != '0') || (ptr[1] != '0')) {
+	cue_ptr = strstr(cue_buf, "INDEX 01 ");
+	cue_ptr += 9;
+	if((cue_ptr[0] != '0') || (cue_ptr[1] != '0')) {
 		printf("Error: The cue sheet is not valid\n\n");
 		free(cue_buf);
 		return 0;
 	}
 
-	ptr = strstr(cue_buf, "FILE ");
-	ptr += 5; // Jump to the BINARY name/path starting with " (it's right after "FILE ")
-	if(ptr[0] != '"') {
+	cue_ptr = strstr(cue_buf, "FILE ");
+	cue_ptr += 5; // Jump to the BINARY name/path starting with " (it's right after "FILE ")
+	if(cue_ptr[0] != '"') {
 		printf("Error: The cue sheet is not valid\n\n");
 		free(cue_buf);
 		return 0;
@@ -521,19 +521,19 @@ int main(int argc, char **argv)
 			cue_buf[i] = '\0';
 		}
 	}
-	ptr++; // Jump to the BINARY name/path starting with "
+	cue_ptr++; // Jump to the BINARY name/path starting with "
 
 
-	bin_path = malloc((strlen(ptr) + strlen(argv[1])) * 2);
+	bin_path = malloc((strlen(cue_ptr) + strlen(argv[1])) * 2);
 	if (bin_path == NULL) {
 		printf("Error: Failed to allocate memory for the bin_path string\n");
 		free(cue_buf);
 		return 0;
 	}
 
-	for(i = strlen(ptr); i > 0; i--) { // Does the cue have the full BINARY path ?
-	  if((ptr[i] == '\\') || (ptr[i] == '/')) { // YES !
-			strcpy(bin_path, ptr);
+	for(i = strlen(cue_ptr); i > 0; i--) { // Does the cue have the full BINARY path ?
+	  if((cue_ptr[i] == '\\') || (cue_ptr[i] == '/')) { // YES !
+			strcpy(bin_path, cue_ptr);
 			break;
 		}
 	}
@@ -546,7 +546,7 @@ int main(int argc, char **argv)
 
 		if(i == 0) {
 		  // Having a filename without hierarchy is perfectly ok.
-		  strcpy(bin_path, ptr);
+		  strcpy(bin_path, cue_ptr);
 		} else { // Here we've got the full CUE path. We're gonna use it to make the BIN path.
 			strcpy(bin_path, argv[1]);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
@@ -557,7 +557,7 @@ int main(int argc, char **argv)
 			for(i = i+1; (unsigned long) i < strlen(bin_path); i++) bin_path[i] = 0x00; // How kewl is dat ?
 			/* Me no liek strncat */
 			i = strlen(bin_path);
-			strcpy(bin_path + i, ptr);
+			strcpy(bin_path + i, cue_ptr);
 			i = strlen(bin_path);
 			if(argv[1][0] == '"') bin_path[i] = '"';
 			else bin_path[i] = '\0';
@@ -644,8 +644,8 @@ int main(int argc, char **argv)
 		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') break;
 	}
 
-	ptr = strstr(cue_buf + i, "TRACK 01 MODE2/2352"); // Ought be
-	if(ptr != NULL) {
+	cue_ptr = strstr(cue_buf + i, "TRACK 01 MODE2/2352"); // Ought be
+	if(cue_ptr != NULL) {
 		if(debug != 0) printf("Disc Type Check : Is MODE2/2352\n");
 	} else { // 2013/05/16, v2.0 : Not MODE2/2352, tell the user and terminate
 		printf("Error: Looks like your game dump is not MODE2/2352, or the cue is invalid.\n\n");
