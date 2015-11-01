@@ -20,7 +20,8 @@ const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN ima
 
 FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
 char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
-int sectorsize = 0; // Sector size
+const int sectorsize = 2352; // Sector size
+
 int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
 int vmode = 0; // User command status (vmode)
 int gap_more = 0; // User command status (gap++)
@@ -602,7 +603,6 @@ int main(int argc, char **argv)
 
 	ptr = strstr(cuebuf + i, "TRACK 01 MODE2/2352"); // Ought be
 	if(ptr != NULL) {
-		sectorsize = 2352;
 		if(debug != 0) printf("Disc Type Check : Is MODE2/2352\n");
 	} else { // 2013/05/16, v2.0 : Not MODE2/2352, tell the user and terminate
 		printf("Error: Looks like your game dump is not MODE2/2352, or the cue is invalid.\n\n");
