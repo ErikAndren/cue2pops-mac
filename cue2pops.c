@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 	char answer[3]; // Where the user answer is stored. Used in the CDRWIN fix prompt shit
 
 	unsigned char *headerbuf; // Buffer for the POPS header
-	unsigned char outbuf[HEADERSIZE]; // File I/O cache
+	unsigned char *outbuf; // File I/O cache
 	int header_ptr = 20; // Integer that points to a location of the POPS header buffer. Decimal 20 is the start of the descriptor "A2"
 	int i; // Tracker
 	int m; // Calculated and formatted MM:__:__ of the current index
@@ -1044,6 +1044,14 @@ int main(int argc, char **argv)
 	headerbuf[1026] = 0x6E;
 	headerbuf[1027] = 0x20;	// 2013/05/16 - v2.0 : CUE2POPS ver ident
 
+	outbuf = malloc(HEADERSIZE);
+	if (outbuf == NULL) {
+		printf("Failed to allocate output buffer\n");
+		free(bin_path);
+		free(headerbuf);
+		return 0;
+	}
+
 	/* 2 user arguments : no command, output file is user argument 2 */
 	if(gap_more == 0 && gap_less == 0 && vmode == 0 && trainer == 0 && argc == 3) {
 		FILE *vcd_file;
@@ -1053,22 +1061,24 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[2]);
 			free(bin_path);
 			free(headerbuf);
+			free(outbuf);
 			return 0;
 		}
 		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
 		fclose(vcd_file);
 		free(headerbuf);
 
-
 		if(!(vcd_file = fopen(argv[2], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 
 		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 		free(bin_path);
@@ -1118,6 +1128,8 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
+
+		free(outbuf);
 		fclose(bin_file);
 		fclose(vcd_file);
 
@@ -1135,6 +1147,7 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[3]);
 			free(bin_path);
 			free(headerbuf);
+			free(outbuf);
 			return 0;
 		}
 		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
@@ -1145,12 +1158,14 @@ int main(int argc, char **argv)
 		if(!(vcd_file = fopen(argv[3], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 
 		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 		free(bin_path);
@@ -1200,6 +1215,8 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
+
+		free(outbuf);
 		fclose(bin_file);
 		fclose(vcd_file);
 
@@ -1217,6 +1234,7 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[4]);
 			free(bin_path);
 			free(headerbuf);
+			free(outbuf);
 			return 0;
 		}
 		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
@@ -1227,12 +1245,14 @@ int main(int argc, char **argv)
 		if(!(vcd_file = fopen(argv[4], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 
 		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 		free(bin_path);
@@ -1282,6 +1302,8 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
+
+		free(outbuf);
 		fclose(bin_file);
 		fclose(vcd_file);
 
@@ -1299,6 +1321,7 @@ int main(int argc, char **argv)
 			printf("Error : Cannot write to %s\n\n", argv[5]);
 			free(bin_path);
 			free(headerbuf);
+			free(outbuf);
 			return 0;
 		}
 		fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
@@ -1308,12 +1331,14 @@ int main(int argc, char **argv)
 		if(!(vcd_file = fopen(argv[5], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 
 		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
+			free(outbuf);
 			return 0;
 		}
 		free(bin_path);
@@ -1363,6 +1388,8 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
+
+		free(outbuf);
 		fclose(bin_file);
 		fclose(vcd_file);
 
@@ -1400,6 +1427,7 @@ int main(int argc, char **argv)
 		printf("Error : Cannot write to %s\n\n", argv[1]);
 		free(bin_path);
 		free(headerbuf);
+		free(outbuf);
 		return 0;
 	}
 	fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
@@ -1410,12 +1438,14 @@ int main(int argc, char **argv)
 	if(!(vcd_file = fopen(argv[1], "ab+"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
 		free(bin_path);
+		free(outbuf);
 		return 0;
 	}
 
 	if(!(bin_file = fopen(bin_path, "rb"))) {
 		printf("Error: Cannot open %s\n\n", bin_path);
 		free(bin_path);
+		free(outbuf);
 		return 0;
 	}
 	free(bin_path);
@@ -1465,6 +1495,8 @@ int main(int argc, char **argv)
 		printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
+
+	free(outbuf);
 	fclose(bin_file);
 	fclose(vcd_file);
 
