@@ -284,7 +284,7 @@ int main(int argc, char **argv)
 
 	char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 
-	char *cuebuf; // Buffer for the cue sheet
+	char *cue_buf; // Buffer for the cue sheet
 	int cuesize; // Size of the cue sheet
 	int cue_ptr;  // Indicates the location of the current INDEX 01 entry in the cue sheet
 	int binary_count = 0; // Number of "BINARY" occurrences in the cue
@@ -487,39 +487,39 @@ int main(int argc, char **argv)
 	}
 
 	rewind(cue_file);
-	cuebuf = malloc(cuesize * 2);
-	if (cuebuf == NULL) {
+	cue_buf = malloc(cuesize * 2);
+	if (cue_buf == NULL) {
 		printf("Failed to allocate memory for the cue buffer\n");
 		return 0;
 	}
 
-	result = fread(cuebuf, cuesize, 1, cue_file);
+	result = fread(cue_buf, cuesize, 1, cue_file);
 	if (result != 1) {
 		printf("Failed to copy the cue to memory\n");
-		free(cuebuf);
+		free(cue_buf);
 		return 0;
 	}
 	fclose(cue_file);
 
-	ptr = strstr(cuebuf, "INDEX 01 ");
+	ptr = strstr(cue_buf, "INDEX 01 ");
 	ptr += 9;
 	if((ptr[0] != '0') || (ptr[1] != '0')) {
 		printf("Error: The cue sheet is not valid\n\n");
-		free(cuebuf);
+		free(cue_buf);
 		return 0;
 	}
 
-	ptr = strstr(cuebuf, "FILE ");
+	ptr = strstr(cue_buf, "FILE ");
 	ptr += 5; // Jump to the BINARY name/path starting with " (it's right after "FILE ")
 	if(ptr[0] != '"') {
 		printf("Error: The cue sheet is not valid\n\n");
-		free(cuebuf);
+		free(cue_buf);
 		return 0;
 	}
 
 	for(i = 0; i < cuesize; i++) {
-		if(cuebuf[i] == '"') {
-			cuebuf[i] = '\0';
+		if(cue_buf[i] == '"') {
+			cue_buf[i] = '\0';
 		}
 	}
 	ptr++; // Jump to the BINARY name/path starting with "
@@ -528,7 +528,7 @@ int main(int argc, char **argv)
 	bin_path = malloc((strlen(ptr) + strlen(argv[1])) * 2);
 	if (bin_path == NULL) {
 		printf("Error: Failed to allocate memory for the bin_path string\n");
-		free(cuebuf);
+		free(cue_buf);
 		return 0;
 	}
 
@@ -642,33 +642,33 @@ int main(int argc, char **argv)
 	*******************************************************************************************************/
 
 	for(i = 0; i < cuesize; i++) { // Since I've nulled some chars in the BIN handler, here I prelocate the TRACK 01 string so the track type substring can be found
-		if(cuebuf[i] == 'T' && cuebuf[i+1] == 'R' && cuebuf[i+2] == 'A' && cuebuf[i+3] == 'C' && cuebuf[i+4] == 'K' && cuebuf[i+5] == ' ' && cuebuf[i+6] == '0' && cuebuf[i+7] == '1') break;
+		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') break;
 	}
 
-	ptr = strstr(cuebuf + i, "TRACK 01 MODE2/2352"); // Ought be
+	ptr = strstr(cue_buf + i, "TRACK 01 MODE2/2352"); // Ought be
 	if(ptr != NULL) {
 		if(debug != 0) printf("Disc Type Check : Is MODE2/2352\n");
 	} else { // 2013/05/16, v2.0 : Not MODE2/2352, tell the user and terminate
 		printf("Error: Looks like your game dump is not MODE2/2352, or the cue is invalid.\n\n");
-		free(cuebuf);
+		free(cue_buf);
 		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
 
 	for(i = 0; i < cuesize; i++) {
-		/* Clean out some crap in the cuebuf */
-		if(cuebuf[i] == ':') cuebuf[i] = '\0';
-		if(cuebuf[i] == 0x0D) cuebuf[i] = '\0';
-		if(cuebuf[i] == 0x0A) cuebuf[i] = '\0';
+		/* Clean out some crap in the cue_buf */
+		if(cue_buf[i] == ':') cue_buf[i] = '\0';
+		if(cue_buf[i] == 0x0D) cue_buf[i] = '\0';
+		if(cue_buf[i] == 0x0A) cue_buf[i] = '\0';
 		/* Count stuff in the cue */
-		if(cuebuf[i] == 'T' && cuebuf[i+1] == 'R' && cuebuf[i+2] == 'A' && cuebuf[i+3] == 'C' && cuebuf[i+4] == 'K' && cuebuf[i+5] == ' ') track_count++;
-		if(cuebuf[i] == 'I' && cuebuf[i+1] == 'N' && cuebuf[i+2] == 'D' && cuebuf[i+3] == 'E' && cuebuf[i+4] == 'X' && cuebuf[i+5] == ' ' && cuebuf[i+6] == '0' && cuebuf[i+7] == '1') index1_count++;
-		if(cuebuf[i] == 'I' && cuebuf[i+1] == 'N' && cuebuf[i+2] == 'D' && cuebuf[i+3] == 'E' && cuebuf[i+4] == 'X' && cuebuf[i+5] == ' ' && cuebuf[i+6] == '0' && cuebuf[i+7] == '0') index0_count++;
-		if(cuebuf[i] == 'B' && cuebuf[i+1] == 'I' && cuebuf[i+2] == 'N' && cuebuf[i+3] == 'A' && cuebuf[i+4] == 'R' && cuebuf[i+5] == 'Y') binary_count++;
-		if(cuebuf[i] == 'W' && cuebuf[i+1] == 'A' && cuebuf[i+2] == 'V' && cuebuf[i+3] == 'E') wave_count++;
-		if(cuebuf[i] == 'P' && cuebuf[i+1] == 'R' && cuebuf[i+2] == 'E' && cuebuf[i+3] == 'G' && cuebuf[i+4] == 'A' && cuebuf[i+5] == 'P') pregap_count++;
-		if(cuebuf[i] == 'P' && cuebuf[i+1] == 'O' && cuebuf[i+2] == 'S' && cuebuf[i+3] == 'T' && cuebuf[i+4] == 'G' && cuebuf[i+5] == 'A' && cuebuf[i+6] == 'P') postgap_count++;
+		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ') track_count++;
+		if(cue_buf[i] == 'I' && cue_buf[i+1] == 'N' && cue_buf[i+2] == 'D' && cue_buf[i+3] == 'E' && cue_buf[i+4] == 'X' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') index1_count++;
+		if(cue_buf[i] == 'I' && cue_buf[i+1] == 'N' && cue_buf[i+2] == 'D' && cue_buf[i+3] == 'E' && cue_buf[i+4] == 'X' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '0') index0_count++;
+		if(cue_buf[i] == 'B' && cue_buf[i+1] == 'I' && cue_buf[i+2] == 'N' && cue_buf[i+3] == 'A' && cue_buf[i+4] == 'R' && cue_buf[i+5] == 'Y') binary_count++;
+		if(cue_buf[i] == 'W' && cue_buf[i+1] == 'A' && cue_buf[i+2] == 'V' && cue_buf[i+3] == 'E') wave_count++;
+		if(cue_buf[i] == 'P' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'E' && cue_buf[i+3] == 'G' && cue_buf[i+4] == 'A' && cue_buf[i+5] == 'P') pregap_count++;
+		if(cue_buf[i] == 'P' && cue_buf[i+1] == 'O' && cue_buf[i+2] == 'S' && cue_buf[i+3] == 'T' && cue_buf[i+4] == 'G' && cue_buf[i+5] == 'A' && cue_buf[i+6] == 'P') postgap_count++;
 	}
 
 	if(debug != 0) {
@@ -681,21 +681,21 @@ int main(int argc, char **argv)
 	}
 	if(binary_count == 0) { // WTF ?
 		printf("Error: Unstandard cue sheet\n\n");
-		free(cuebuf);
+		free(cue_buf);
 		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
 	if((track_count == 0) || (track_count != index1_count)) { // Huh ?
 		printf("Error : Cannot count tracks\n\n");
-		free(cuebuf);
+		free(cue_buf);
 		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
 	if(binary_count != 1 || wave_count != 0) { // I urd u liek warez^^
 		printf("Error: Cue sheets of splitted dumps aren't supported\n\n");
-		free(cuebuf);
+		free(cue_buf);
 		free(bin_path);
 		free(headerbuf);
 		return 0;
@@ -729,67 +729,67 @@ int main(int argc, char **argv)
 		header_ptr += 10; // Put the pointer at the start of the correct track entry
 
 		for(cue_ptr = 0; cue_ptr < cuesize; cue_ptr++) {
-			if(cuebuf[cue_ptr] == 'T' && cuebuf[cue_ptr+1] == 'R' && cuebuf[cue_ptr+2] == 'A' && cuebuf[cue_ptr+3] == 'C' && cuebuf[cue_ptr+4] == 'K' && cuebuf[cue_ptr+5] == ' ') {
-				cuebuf[cue_ptr] = '\0';
-				cuebuf[cue_ptr + 1] = '\0';
-				cuebuf[cue_ptr + 2] = '\0';
-				cuebuf[cue_ptr + 3] = '\0';
-				cuebuf[cue_ptr + 4] = '\0';
-				cuebuf[cue_ptr + 5] = '\0';
+			if(cue_buf[cue_ptr] == 'T' && cue_buf[cue_ptr+1] == 'R' && cue_buf[cue_ptr+2] == 'A' && cue_buf[cue_ptr+3] == 'C' && cue_buf[cue_ptr+4] == 'K' && cue_buf[cue_ptr+5] == ' ') {
+				cue_buf[cue_ptr] = '\0';
+				cue_buf[cue_ptr + 1] = '\0';
+				cue_buf[cue_ptr + 2] = '\0';
+				cue_buf[cue_ptr + 3] = '\0';
+				cue_buf[cue_ptr + 4] = '\0';
+				cue_buf[cue_ptr + 5] = '\0';
 
 				/* Track Type : 41h = DATA Track / 01h CDDA Track */
-				if(cuebuf[cue_ptr + 13] == '2' || cuebuf[cue_ptr + 13] == '1' || cuebuf[cue_ptr + 13] != 'O') {
+				if(cue_buf[cue_ptr + 13] == '2' || cue_buf[cue_ptr + 13] == '1' || cue_buf[cue_ptr + 13] != 'O') {
 					headerbuf[10] = 0x41; 			// Assume DATA Track
 					headerbuf[20] = 0x41; 			// 2013/05/16, v2.0 : Assume DATA Track
 					headerbuf[header_ptr] = 0x41; 	// Assume DATA Track
 				}
-				if(cuebuf[cue_ptr + 13] == 'O') {
+				if(cue_buf[cue_ptr + 13] == 'O') {
 					headerbuf[10] = 0x01; 			// Assume AUDIO Track
 					headerbuf[20] = 0x01; 			// 2013/05/16, v2.0 : Assume AUDIO Track
 					headerbuf[header_ptr] = 0x01; 	// Assume AUDIO Track
 				}
 
-				headerbuf[header_ptr + 2] = ((cuebuf[cue_ptr + 6] - 48) * 16) + (cuebuf[cue_ptr + 7] - 48);	// Track Number
-				headerbuf[17] = ((cuebuf[cue_ptr + 6] - 48) * 16) + (cuebuf[cue_ptr + 7] - 48);				// Number of track entries
+				headerbuf[header_ptr + 2] = ((cue_buf[cue_ptr + 6] - 48) * 16) + (cue_buf[cue_ptr + 7] - 48);	// Track Number
+				headerbuf[17] = ((cue_buf[cue_ptr + 6] - 48) * 16) + (cue_buf[cue_ptr + 7] - 48);				// Number of track entries
 				break;
 			}
 		}
 
 		for(cue_ptr = 0; cue_ptr < cuesize; cue_ptr++) {
-			if(cuebuf[cue_ptr] == 'I' && cuebuf[cue_ptr+1] == 'N' && cuebuf[cue_ptr+2] == 'D' && cuebuf[cue_ptr+3] == 'E' && cuebuf[cue_ptr+4] == 'X' && cuebuf[cue_ptr+5] == ' ' && cuebuf[cue_ptr+6] == '0' && cuebuf[cue_ptr+7] == '0') {
+			if(cue_buf[cue_ptr] == 'I' && cue_buf[cue_ptr+1] == 'N' && cue_buf[cue_ptr+2] == 'D' && cue_buf[cue_ptr+3] == 'E' && cue_buf[cue_ptr+4] == 'X' && cue_buf[cue_ptr+5] == ' ' && cue_buf[cue_ptr+6] == '0' && cue_buf[cue_ptr+7] == '0') {
 				gap_ptr = cue_ptr; // Memoryze the location of the INDEX 00 entry
-				cuebuf[cue_ptr] = '\0';
-				cuebuf[cue_ptr + 1] = '\0';
-				cuebuf[cue_ptr + 2] = '\0';
-				cuebuf[cue_ptr + 3] = '\0';
-				cuebuf[cue_ptr + 4] = '\0';
-				cuebuf[cue_ptr + 5] = '\0';
-				cuebuf[cue_ptr + 6] = '\0';
-				cuebuf[cue_ptr + 7] = '\0';
+				cue_buf[cue_ptr] = '\0';
+				cue_buf[cue_ptr + 1] = '\0';
+				cue_buf[cue_ptr + 2] = '\0';
+				cue_buf[cue_ptr + 3] = '\0';
+				cue_buf[cue_ptr + 4] = '\0';
+				cue_buf[cue_ptr + 5] = '\0';
+				cue_buf[cue_ptr + 6] = '\0';
+				cue_buf[cue_ptr + 7] = '\0';
 			}
-			if(cuebuf[cue_ptr] == 'I' && cuebuf[cue_ptr+1] == 'N' && cuebuf[cue_ptr+2] == 'D' && cuebuf[cue_ptr+3] == 'E' && cuebuf[cue_ptr+4] == 'X' && cuebuf[cue_ptr+5] == ' ' && cuebuf[cue_ptr+6] == '0' && cuebuf[cue_ptr+7] == '1') {
-				cuebuf[cue_ptr] = '\0';
-				cuebuf[cue_ptr + 1] = '\0';
-				cuebuf[cue_ptr + 2] = '\0';
-				cuebuf[cue_ptr + 3] = '\0';
-				cuebuf[cue_ptr + 4] = '\0';
-				cuebuf[cue_ptr + 5] = '\0';
-				cuebuf[cue_ptr + 6] = '\0';
-				cuebuf[cue_ptr + 7] = '\0';
+			if(cue_buf[cue_ptr] == 'I' && cue_buf[cue_ptr+1] == 'N' && cue_buf[cue_ptr+2] == 'D' && cue_buf[cue_ptr+3] == 'E' && cue_buf[cue_ptr+4] == 'X' && cue_buf[cue_ptr+5] == ' ' && cue_buf[cue_ptr+6] == '0' && cue_buf[cue_ptr+7] == '1') {
+				cue_buf[cue_ptr] = '\0';
+				cue_buf[cue_ptr + 1] = '\0';
+				cue_buf[cue_ptr + 2] = '\0';
+				cue_buf[cue_ptr + 3] = '\0';
+				cue_buf[cue_ptr + 4] = '\0';
+				cue_buf[cue_ptr + 5] = '\0';
+				cue_buf[cue_ptr + 6] = '\0';
+				cue_buf[cue_ptr + 7] = '\0';
 
-				m = ((cuebuf[cue_ptr + 9] - 48) * 16) + (cuebuf[cue_ptr + 10] - 48);
-				s = ((cuebuf[cue_ptr + 12] - 48) * 16) + (cuebuf[cue_ptr + 13] - 48);
-				f = ((cuebuf[cue_ptr + 15] - 48) * 16) + (cuebuf[cue_ptr + 16] - 48);
+				m = ((cue_buf[cue_ptr + 9] - 48) * 16) + (cue_buf[cue_ptr + 10] - 48);
+				s = ((cue_buf[cue_ptr + 12] - 48) * 16) + (cue_buf[cue_ptr + 13] - 48);
+				f = ((cue_buf[cue_ptr + 15] - 48) * 16) + (cue_buf[cue_ptr + 16] - 48);
 
 				if(daTrack_ptr == 0 && headerbuf[10] == 0x01 && gap_ptr != 0) { // Targets the first AUDIO track INDEX 00 MSF
-					daTrack_ptr = (((((cuebuf[gap_ptr + 9] - 48) * 10) + (cuebuf[gap_ptr + 10] - 48)) * 4500) + ((((cuebuf[gap_ptr + 12] - 48) * 10) + (cuebuf[gap_ptr + 13] - 48)) * 75) + (((cuebuf[gap_ptr + 15] - 48) * 10) + (cuebuf[gap_ptr + 16] - 48))) * SECTORSIZE;
+					daTrack_ptr = (((((cue_buf[gap_ptr + 9] - 48) * 10) + (cue_buf[gap_ptr + 10] - 48)) * 4500) + ((((cue_buf[gap_ptr + 12] - 48) * 10) + (cue_buf[gap_ptr + 13] - 48)) * 75) + (((cue_buf[gap_ptr + 15] - 48) * 10) + (cue_buf[gap_ptr + 16] - 48))) * SECTORSIZE;
 					if(debug != 0) {
 						printf("daTrack_ptr hit on TRACK %02d AUDIO INDEX 00 MSF minus 2 seconds !\n", i + 1);
 						printf("Current daTrack_ptr = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
 						printf("daTrack_ptr LBA     = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
 					}
 				} else if(daTrack_ptr == 0 && headerbuf[10] == 0x01 && gap_ptr == 0) { // Targets the first AUDIO track INDEX 01 MSF
-					daTrack_ptr = (((((cuebuf[cue_ptr + 9] - 48) * 10) + (cuebuf[cue_ptr + 10] - 48)) * 4500) + ((((cuebuf[cue_ptr + 12] - 48) * 10) + (cuebuf[cue_ptr + 13] - 48)) * 75) + (((cuebuf[cue_ptr + 15] - 48) * 10) + (cuebuf[cue_ptr + 16] - 48))) * SECTORSIZE;
+					daTrack_ptr = (((((cue_buf[cue_ptr + 9] - 48) * 10) + (cue_buf[cue_ptr + 10] - 48)) * 4500) + ((((cue_buf[cue_ptr + 12] - 48) * 10) + (cue_buf[cue_ptr + 13] - 48)) * 75) + (((cue_buf[cue_ptr + 15] - 48) * 10) + (cue_buf[cue_ptr + 16] - 48))) * SECTORSIZE;
 					if(debug != 0) {
 						printf("daTrack_ptr hit on TRACK %02d AUDIO INDEX 01 MSF minus 2 seconds !\n", i + 1);
 						printf("Current daTrack_ptr = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
@@ -814,9 +814,9 @@ int main(int argc, char **argv)
 
 				/* ... If INDEX 00 was found, then we register it's MSF to the INDEX 00 MSF field 	*/
 				if(gap_ptr != 0) { // Pregap (INDEX 00) was found before
-					m = ((cuebuf[gap_ptr + 9] - 48) * 16) + (cuebuf[gap_ptr + 10] - 48);
-					s = ((cuebuf[gap_ptr + 12] - 48) * 16) + (cuebuf[gap_ptr + 13] - 48);
-					f = ((cuebuf[gap_ptr + 15] - 48) * 16) + (cuebuf[gap_ptr + 16] - 48);
+					m = ((cue_buf[gap_ptr + 9] - 48) * 16) + (cue_buf[gap_ptr + 10] - 48);
+					s = ((cue_buf[gap_ptr + 12] - 48) * 16) + (cue_buf[gap_ptr + 13] - 48);
+					f = ((cue_buf[gap_ptr + 15] - 48) * 16) + (cue_buf[gap_ptr + 16] - 48);
 					headerbuf[header_ptr + 3] = m;		// Absolute MM (INDEX 00)
 					headerbuf[header_ptr + 4] = s;		// Absolute SS (INDEX 00)
 					headerbuf[header_ptr + 5] = f;		// Absolute FF (INDEX 00)
@@ -1017,7 +1017,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	free(cuebuf);
+	free(cue_buf);
 
 	bin_size = GetFileSize(bin_path);
 	if (bin_size < 0) {
