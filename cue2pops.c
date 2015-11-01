@@ -23,14 +23,12 @@ char *bin_path; // name/path of the BIN that is attached to the cue. Handled by 
 const int SECTORSIZE = 2352; // Sector size
 const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
-
 int vmode = 0; // User command status (vmode)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 int bin_size; // BIN (disc image) size
 
 int sector_count; // Calculated number of sectors
-int track_count = 0;; // Number of "TRACK " occurrences in the cue
 int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
 
@@ -295,6 +293,8 @@ int main(int argc, char **argv)
 	int gap_less = 0; // User command status (gap--)
 
 	int daTrack_ptr = 0; // Indicates the location of the pregap that's between the data track and the first audio track
+
+	int track_count = 0; // Number of "TRACK " occurrences in the cue
 
 	printf("\nBIN/CUE to IMAGE0.VCD conversion tool v2.0\n");
 	printf("Last modified: %s\n\n", __DATE__);
