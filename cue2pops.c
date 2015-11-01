@@ -237,7 +237,7 @@ int GetBinSize(char *bin_name)
 
 int GetLeadOut(unsigned char *hbuf)
 {
-	/* MSF is calculated from the dump size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
+	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 
 	// Formatted Lead-Out MM:SS:FF
 	char LeadOut[7];
