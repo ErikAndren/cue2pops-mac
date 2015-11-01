@@ -475,14 +475,16 @@ int main(int argc, char **argv)
 
 	ptr = strstr(cuebuf, "FILE ");
 	ptr += 5; // Jump to the BINARY name/path starting with " (it's right after "FILE ")
-	if(ptr[0] != 0x22) {
+	if(ptr[0] != '"') {
 		printf("Error: The cue sheet is not valid\n\n");
 		free(cuebuf);
 		return 0;
 	}
 
 	for(i = 0; i < cuesize; i++) {
-		if(cuebuf[i] == 0x22) cuebuf[i] = '\0';
+		if(cuebuf[i] == '"') {
+			cuebuf[i] = '\0';
+		}
 	}
 	ptr++; // Jump to the BINARY name/path starting with "
 
