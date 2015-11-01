@@ -504,6 +504,11 @@ int main(int argc, char **argv)
 
 
 	bin_path = malloc((strlen(ptr) + strlen(argv[1])) * 2);
+	if (bin_path == NULL) {
+		printf("Error: Failed to allocate memory for the bin_path string\n");
+		free(cuebuf);
+		return 0;
+	}
 
 	for(i = strlen(ptr); i > 0; i--) { // Does the cue have the full BINARY path ?
 	  if((ptr[i] == '\\') || (ptr[i] == '/')) { // YES !
