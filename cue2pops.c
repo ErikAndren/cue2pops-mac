@@ -28,11 +28,11 @@ int vmode = 0; // User command status (vmode)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 int bin_size; // BIN (disc image) size
+
 int sector_count; // Calculated number of sectors
 int track_count = 0;; // Number of "TRACK " occurrences in the cue
 int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
-int daTrack_ptr = 0; // Indicates the location of the pregap that's between the data track and the first audio track
 
 int deny_vmode = 0; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
 int fix_game = 0;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
@@ -293,6 +293,8 @@ int main(int argc, char **argv)
 	int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
 	int gap_more = 0; // User command status (gap++)
 	int gap_less = 0; // User command status (gap--)
+
+	int daTrack_ptr = 0; // Indicates the location of the pregap that's between the data track and the first audio track
 
 	printf("\nBIN/CUE to IMAGE0.VCD conversion tool v2.0\n");
 	printf("Last modified: %s\n\n", __DATE__);
