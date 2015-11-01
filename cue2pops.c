@@ -19,7 +19,7 @@
 int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
 
 FILE *file, *leech; //file is used for opening the input cue and the output file, leech is used for opening the BIN that's attached to the cue.
-char *dumpaddr; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
+char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 int sectorsize = 0; // Sector size
 int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
 int vmode = 0; // User command status (vmode)
@@ -219,8 +219,8 @@ int GetLeadOut(void)
 {
 	/* MSF is calculated from the dump size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 
-	if(!(file = fopen(dumpaddr, "rb"))) { // Open the BINARY that is attached to the cue
-		printf("Error: Cannot open %s\n\n", dumpaddr);
+	if(!(file = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
+		printf("Error: Cannot open %s\n\n", bin_path);
 		return -1;
 	}
 	fseek(file, 0, SEEK_END);
@@ -470,11 +470,11 @@ int main(int argc, char **argv)
 	ptr++; // Jump to the BINARY name/path starting with "
 
 
-	dumpaddr = malloc((strlen(ptr) + strlen(argv[1])) * 2);
+	bin_path = malloc((strlen(ptr) + strlen(argv[1])) * 2);
 
 	for(i = strlen(ptr); i > 0; i--) { // Does the cue have the full BINARY path ?
 	  if((ptr[i] == '\\') || (ptr[i] == '/')) { // YES !
-			strcpy(dumpaddr, ptr);
+			strcpy(bin_path, ptr);
 			break;
 		}
 	}
@@ -487,27 +487,27 @@ int main(int argc, char **argv)
 
 		if(i == 0) {
 		  // Having a filename without hierarchy is perfectly ok.
-		  strcpy(dumpaddr, ptr);
+		  strcpy(bin_path, ptr);
 		} else { // Here we've got the full CUE path. We're gonna use it to make the BIN path.
-			strcpy(dumpaddr, argv[1]);
+			strcpy(bin_path, argv[1]);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
-			for(i = strlen(dumpaddr); i > 0; i--) {
-			  if((dumpaddr[i] == '\\') || (dumpaddr[i] == '/'))
+			for(i = strlen(bin_path); i > 0; i--) {
+			  if((bin_path[i] == '\\') || (bin_path[i] == '/'))
 			     break;
 			}
-			for(i = i+1; (unsigned long) i < strlen(dumpaddr); i++) dumpaddr[i] = 0x00; // How kewl is dat ?
+			for(i = i+1; (unsigned long) i < strlen(bin_path); i++) bin_path[i] = 0x00; // How kewl is dat ?
 			/* Me no liek strncat */
-			i = strlen(dumpaddr);
-			strcpy(dumpaddr + i, ptr);
-			i = strlen(dumpaddr);
-			if(argv[1][0] == '"') dumpaddr[i] = '"';
-			else dumpaddr[i] = '\0';
+			i = strlen(bin_path);
+			strcpy(bin_path + i, ptr);
+			i = strlen(bin_path);
+			if(argv[1][0] == '"') bin_path[i] = '"';
+			else bin_path[i] = '\0';
 		}
 	}
 
 	if(debug != 0) {
 		printf("CUE Path   = %s\n", argv[1]);
-		printf("BIN Path   = %s\n\n", dumpaddr);
+		printf("BIN Path   = %s\n\n", bin_path);
 	}
 
 	headerbuf = malloc(headersize * 2);
@@ -588,7 +588,7 @@ int main(int argc, char **argv)
 	} else { // 2013/05/16, v2.0 : Not MODE2/2352, tell the user and terminate
 		printf("Error: Looks like your game dump is not MODE2/2352, or the cue is invalid.\n\n");
 		free(cuebuf);
-		free(dumpaddr);
+		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
@@ -619,21 +619,21 @@ int main(int argc, char **argv)
 	if(binary_count == 0) { // WTF ?
 		printf("Error: Unstandard cue sheet\n\n");
 		free(cuebuf);
-		free(dumpaddr);
+		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
 	if((track_count == 0) || (track_count != index1_count)) { // Huh ?
 		printf("Error : Cannot count tracks\n\n");
 		free(cuebuf);
-		free(dumpaddr);
+		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
 	if(binary_count != 1 || wave_count != 0) { // I urd u liek warez^^
 		printf("Error: Cue sheets of splitted dumps aren't supported\n\n");
 		free(cuebuf);
-		free(dumpaddr);
+		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
@@ -957,7 +957,7 @@ int main(int argc, char **argv)
 	free(cuebuf);
 
 	if(GetLeadOut() != 1) {
-		free(dumpaddr);
+		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
@@ -984,7 +984,7 @@ int main(int argc, char **argv)
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(file = fopen(argv[2], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
-			free(dumpaddr);
+			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
@@ -995,16 +995,16 @@ int main(int argc, char **argv)
 
 		if(!(file = fopen(argv[2], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
-			free(dumpaddr);
+			free(bin_path);
 			return 0;
 		}
 
-		if(!(leech = fopen(dumpaddr, "rb"))) {
-			printf("Error: Cannot open %s\n\n", dumpaddr);
-			free(dumpaddr);
+		if(!(leech = fopen(bin_path, "rb"))) {
+			printf("Error: Cannot open %s\n\n", bin_path);
+			free(bin_path);
 			return 0;
 		}
-		free(dumpaddr);
+		free(bin_path);
 
 		for(i = 0; i < dumpsize; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
@@ -1062,7 +1062,7 @@ int main(int argc, char **argv)
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(file = fopen(argv[3], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
-			free(dumpaddr);
+			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
@@ -1073,16 +1073,16 @@ int main(int argc, char **argv)
 
 		if(!(file = fopen(argv[3], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
-			free(dumpaddr);
+			free(bin_path);
 			return 0;
 		}
 
-		if(!(leech = fopen(dumpaddr, "rb"))) {
-			printf("Error: Cannot open %s\n\n", dumpaddr);
-			free(dumpaddr);
+		if(!(leech = fopen(bin_path, "rb"))) {
+			printf("Error: Cannot open %s\n\n", bin_path);
+			free(bin_path);
 			return 0;
 		}
-		free(dumpaddr);
+		free(bin_path);
 
 		for(i = 0; i < dumpsize; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
@@ -1140,7 +1140,7 @@ int main(int argc, char **argv)
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(file = fopen(argv[4], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
-			free(dumpaddr);
+			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
@@ -1151,16 +1151,16 @@ int main(int argc, char **argv)
 
 		if(!(file = fopen(argv[4], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
-			free(dumpaddr);
+			free(bin_path);
 			return 0;
 		}
 
-		if(!(leech = fopen(dumpaddr, "rb"))) {
-			printf("Error: Cannot open %s\n\n", dumpaddr);
-			free(dumpaddr);
+		if(!(leech = fopen(bin_path, "rb"))) {
+			printf("Error: Cannot open %s\n\n", bin_path);
+			free(bin_path);
 			return 0;
 		}
-		free(dumpaddr);
+		free(bin_path);
 
 		for(i = 0; i < dumpsize; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
@@ -1218,7 +1218,7 @@ int main(int argc, char **argv)
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(file = fopen(argv[5], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
-			free(dumpaddr);
+			free(bin_path);
 			free(headerbuf);
 			return 0;
 		}
@@ -1229,16 +1229,16 @@ int main(int argc, char **argv)
 
 		if(!(file = fopen(argv[5], "ab+"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
-			free(dumpaddr);
+			free(bin_path);
 			return 0;
 		}
 
-		if(!(leech = fopen(dumpaddr, "rb"))) {
-			printf("Error: Cannot open %s\n\n", dumpaddr);
-			free(dumpaddr);
+		if(!(leech = fopen(bin_path, "rb"))) {
+			printf("Error: Cannot open %s\n\n", bin_path);
+			free(bin_path);
 			return 0;
 		}
-		free(dumpaddr);
+		free(bin_path);
 
 		for(i = 0; i < dumpsize; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
@@ -1317,7 +1317,7 @@ int main(int argc, char **argv)
 	printf("Saving the virtual CD-ROM image. Please wait...\n");
 	if(!(file = fopen(argv[1], "wb"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
-		free(dumpaddr);
+		free(bin_path);
 		free(headerbuf);
 		return 0;
 	}
@@ -1328,16 +1328,16 @@ int main(int argc, char **argv)
 
 	if(!(file = fopen(argv[1], "ab+"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
-		free(dumpaddr);
+		free(bin_path);
 		return 0;
 	}
 
-	if(!(leech = fopen(dumpaddr, "rb"))) {
-		printf("Error: Cannot open %s\n\n", dumpaddr);
-		free(dumpaddr);
+	if(!(leech = fopen(bin_path, "rb"))) {
+		printf("Error: Cannot open %s\n\n", bin_path);
+		free(bin_path);
 		return 0;
 	}
-	free(dumpaddr);
+	free(bin_path);
 
 	for(i = 0; i < dumpsize; i += headersize) {
 		if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
