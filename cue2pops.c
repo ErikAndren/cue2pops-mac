@@ -243,12 +243,15 @@ int GetLeadOut(void)
 	leadoutM = sector_count / 4500;
 	leadoutS = (sector_count - leadoutM * 4500) / 75;
 	leadoutF = sector_count - leadoutM * 4500 - leadoutS * 75;
-	if(debug != 0) printf("Calculated Lead-Out MSF = %02d:%02d:%02d\n", leadoutM, leadoutS, leadoutF);
+	if(debug != 0) {
+		printf("Calculated Lead-Out MSF = %02d:%02d:%02d\n", leadoutM, leadoutS, leadoutF);
+	}
 	sector_count = (bin_size / sectorsize) + (150 * (pregap_count + postgap_count));
-	if(debug != 0) printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
+	if(debug != 0) {
+		printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
+	}
+	
 	// Additonally we can add a dbg printf of the sector count that's written in sector 16 for verification. Mmmm kinda waste of time
-
-
 	/* Tired of math already. sprintf + redo what was done with the cue sheet MSFs */
 	sprintf(&LeadOut[0], "%02d", leadoutM);
 	sprintf(&LeadOut[2], "%02d", leadoutS);
@@ -259,7 +262,9 @@ int GetLeadOut(void)
 	LeadOut[3] = '\0';
 	LeadOut[4] = '\0';
 	LeadOut[5] = '\0';
-	if(debug != 0) printf("Formatted Lead-Out MSF  = %02X:%02X:%02X\n\n", LeadOut[0], LeadOut[1], LeadOut[2]);
+	if(debug != 0) {
+		printf("Formatted Lead-Out MSF  = %02X:%02X:%02X\n\n", LeadOut[0], LeadOut[1], LeadOut[2]);
+	}
 
 	return 1;
 }
