@@ -230,7 +230,7 @@ int GetFileSize(char *file_name)
 	return size;
 }
 
-int EvaluateArg(char *arg)
+int EvaluateArg(const char *arg)
 {
 	int handled = 1;
 
@@ -246,6 +246,31 @@ int EvaluateArg(char *arg)
 		handled = 0;
 	}
 	return handled;
+}
+
+//Check that file has correct naming and that it actually exists
+int isCue(const char *file_name)
+{
+	FILE *file_handle;
+	char *cue_loc;
+
+	cue_loc = strstr(file_name, ".cue");
+	if (cue_loc != NULL) {
+		return 1;
+	}
+
+	cue_loc = strstr(file_name, ".CUE");
+	if (cue_loc != NULL) {
+		return 1;
+	}
+
+	file_handle = fopen(file_name, "Rb");
+	if (file_handle) {
+		fclose(file_handle);
+		return 1;
+	}
+
+	return 0;
 }
 
 int ConvertFileEndingToVcd(const char *file_name)
@@ -317,12 +342,13 @@ int main(int argc, char **argv)
 	size_t result;
 
 	FILE *cue_file; //cue_file is used for opening the CUE
+	char *cue_name = NULL; // Name of cue file
 	char *cue_buf; // Buffer for the cue sheet
 	char *cue_ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
 	int cue_size; // Size of the cue sheet
 
 	FILE *vcd_file;
-	char *vcd_name;
+	char *vcd_name = NULL;
 
 	int binary_count = 0; // Number of "BINARY" occurrences in the cue
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
@@ -382,8 +408,23 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	///PROGRAM.EXE INPUT.CUE and make the output file name from the input file name
-	if(argc == 2) {
+	//Parse commands
+	for (i = 1; i < argc; i++) {
+		//Always assume that the first non command argument given is the input .cue file"
+		if (!EvaluateArg(argv[i]) && (cue_name == NULL)) {
+			cue_name = strdup(argv[i]);
+		} else {
+			vcd_name = strdup(argv[i]);
+		}
+	}
+
+	if (isCue(cue_name) == 0) {
+		printf("input .cue file: %s did not exist\n", cue_name);
+		return 0;
+	}
+
+	if (vcd_name == NULL) {
+		//Output file name was not defined. Assume it is the same as the input but with a .VCD ending
 		vcd_name = strdup(argv[1]);
 		if (vcd_name == NULL) {
 			printf("Error: Failed to copy destination string\n");
@@ -394,134 +435,6 @@ int main(int argc, char **argv)
 			printf("Error: Failed to change file ending to .VCD\n");
 			return 0;
 		}
-	}
-
-
-	if(argc == 3) { // PROGRAM.EXE INPUT.CUE <CMD_1/OUTPUT>
-		if (!EvaluateArg(argv[2])) {
-			// else,argv[2] is the output file name
-			vcd_name = strdup(argv[2]);
-			if (vcd_name == NULL) {
-				printf("Error: Failed to copy destination string\n");
-				return 0;
-			}
-		} else {
-			//argv[2] was command, convert argv[1] to .vcd ending
-			vcd_name = strdup(argv[1]);
-			if (vcd_name == NULL) {
-				printf("Error: Failed to copy destination string\n");
-				return 0;
-			}
-
-			if (ConvertFileEndingToVcd(vcd_name)) {
-				printf("Error: Failed to change file ending to .VCD\n");
-				return 0;
-			}
-
-
-		}
-	}
-
-	if(argc == 4) { // PROGRAM.EXE INPUT.CUE <CMD_1> <CMD_2/OUTPUT>
-		if(!strcmp(argv[2], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[2], "gap--")) 		gap_less = 1;
-		else if(!strcmp(argv[2], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[2], "trainer")) 	trainer = 1;
-		else {
-			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 3 , argv[2]);
-			return 0;
-		}
-		if(!strcmp(argv[3], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[3], "gap--")) 		gap_less = 1;
-		else if(!strcmp(argv[3], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[3], "trainer")) 	trainer = 1;
-		// else, argv[3] is the output file name
-	}
-
-	if(argc == 5) { // PROGRAM.EXE INPUT.CUE <CMD_1> <CMD_2> <CMD_3/OUTPUT>
-		if(!strcmp(argv[2], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[2], "gap--")) 		gap_less = 1;
-		else if(!strcmp(argv[2], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[2], "trainer")) 	trainer = 1;
-		else {
-			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 4 , argv[2]);
-			return 0;
-		}
-		if(!strcmp(argv[3], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[3], "gap--")) 		gap_less = 1;
-		else if(!strcmp(argv[3], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[3], "trainer")) 	trainer = 1;
-		else {
-			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 3 , argv[3]);
-			return 0;
-		}
-		if(!strcmp(argv[4], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[4], "gap--"))	 	gap_less = 1;
-		else if(!strcmp(argv[4], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[4], "trainer")) 	trainer = 1;
-		// else, argv[4] is the output file name
-	}
-
-	if(argc == 6) { // PROGRAM.EXE INPUT.CUE <CMD_1> <CMD_2> <CMD_3> <OUTPUT>
-		if(!strcmp(argv[2], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[2], "gap--")) 		gap_less = 1;
-		else if(!strcmp(argv[2], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[2], "trainer")) 	trainer = 1;
-		else {
-			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 4 , argv[2]);
-			return 0;
-		}
-		if(!strcmp(argv[3], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[3], "gap--"))	 	gap_less = 1;
-		else if(!strcmp(argv[3], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[3], "trainer")) 	trainer = 1;
-		else {
-			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 3 , argv[3]);
-			return 0;
-		}
-		if(!strcmp(argv[4], "gap++")) 			gap_more = 1;
-		else if(!strcmp(argv[4], "gap--"))	 	gap_less = 1;
-		else if(!strcmp(argv[4], "vmode")) 		vmode = 1;
-		else if(!strcmp(argv[4], "trainer")) 	trainer = 1;
-		else {
-			printf("Syntax Error : Argument %d (%s) is not valid.\n\n", argc - 2 , argv[4]);
-			return 0;
-		}
-		// argv[5] is the output file name
-	}
-
-	if(argc >= 7) { // No moar plz
-		printf("Error: I don't need %d args, one input file is enuff\n\n", argc - 1);
-		printf("Usage :\n");
-		printf("%s input.cue <cmd_1> <cmd_2> <cmd_3> <output.vcd>\n\n", argv[0]);
-		printf("Commands are :\n");
-		printf("gap++ : Adds 2 seconds to all track indexes MSF\n");
-		printf("gap-- : Substracts 2 seconds to all track indexes MSF\n");
-		printf("vmode : Attempts to patch the video mode to NTSC and to fix the screen position\n");
-		printf("trainer : Enable cheats\n\n");
-		printf("Examples :\n");
-		printf("%s mygame.cue\n", argv[0]);
-		printf("%s mygame.cue IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue vmode\n", argv[0]);
-		printf("%s mygame.cue gap++\n", argv[0]);
-		printf("%s mygame.cue gap--\n", argv[0]);
-		printf("%s mygame.cue trainer\n", argv[0]);
-		printf("%s mygame.cue vmode IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap++ IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap-- IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue trainer IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap++ vmode\n", argv[0]);
-		printf("%s mygame.cue gap++ trainer\n", argv[0]);
-		printf("%s mygame.cue gap-- vmode\n", argv[0]);
-		printf("%s mygame.cue gap-- trainer\n", argv[0]);
-		printf("%s mygame.cue gap++ vmode IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap-- vmode IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap++ trainer IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap-- trainer IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap++ vmode trainer IMAGE0.VCD\n", argv[0]);
-		printf("%s mygame.cue gap-- vmode trainer IMAGE0.VCD\n", argv[0]);
-		printf("Commands and output file are optional.\n\n");
-		return 0;
 	}
 
 	if(gap_more == 1 && gap_less == 1) { // User is dumb
