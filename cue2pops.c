@@ -248,6 +248,27 @@ int EvaluateArg(char *arg)
 	return handled;
 }
 
+int ConvertFileEndingToVcd(const char *file_name)
+{
+	char *cue_loc;
+
+	cue_loc = strstr(file_name, ".cue");
+	if (cue_loc != NULL) {
+		//FIXME: Is upper case ending necessary?
+		strcpy(cue_loc, ".VCD");
+		return 0;
+	}
+
+	cue_loc = strstr(file_name, ".CUE");
+	if (cue_loc != NULL) {
+		strcpy(cue_loc, ".VCD");
+		return 0;
+	}
+
+	printf("Error: Input argument was not a cue file\n");
+	return -2;
+}
+
 int GetLeadOut(unsigned char *hbuf, int b_size)
 {
 	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
@@ -363,30 +384,14 @@ int main(int argc, char **argv)
 
 	///PROGRAM.EXE INPUT.CUE and make the output file name from the input file name
 	if(argc == 2) {
-		char *cue_loc;
-		int handled = 0;
-
 		vcd_name = strdup(argv[1]);
 		if (vcd_name == NULL) {
 			printf("Error: Failed to copy destination string\n");
 			return 0;
 		}
 
-		cue_loc = strstr(vcd_name, ".cue");
-		if (cue_loc != NULL) {
-			//FIXME: Is upper case ending necessary?
-			strcpy(cue_loc, ".VCD");
-			handled = 1;
-		}
-
-		cue_loc = strstr(vcd_name, ".CUE");
-		if (cue_loc != NULL) {
-			strcpy(cue_loc, ".VCD");
-			handled = 1;
-		}
-
-		if (handled == 0) {
-			printf("Error: Input argument was not a cue file\n");
+		if (ConvertFileEndingToVcd(vcd_name)) {
+			printf("Error: Failed to change file ending to .VCD\n");
 			return 0;
 		}
 	}
@@ -400,6 +405,8 @@ int main(int argc, char **argv)
 				printf("Error: Failed to copy destination string\n");
 				return 0;
 			}
+		} else {
+
 		}
 	}
 
