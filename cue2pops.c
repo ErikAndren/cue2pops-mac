@@ -1104,7 +1104,9 @@ int main(int argc, char **argv)
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
 					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
-				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				} else {
+					fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				}
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1184,7 +1186,9 @@ int main(int argc, char **argv)
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
 					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
-				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				} else {
+					fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				}
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1264,7 +1268,9 @@ int main(int argc, char **argv)
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
 					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
-				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				} else {
+					fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				}
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
