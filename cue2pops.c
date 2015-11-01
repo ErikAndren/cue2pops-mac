@@ -215,18 +215,18 @@ int GetLeadOut(unsigned char *hbuf)
 	/* MSF is calculated from the dump size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 	FILE *bin;
 	int status;
-	
+
 	// Formatted Lead-Out MM:SS:FF
 	char LeadOut[7];
 	int leadoutM; // Calculated Lead-Out MM:__:__
 	int leadoutS; // Calculated Lead-Out __:SS:__
 	int leadoutF; // Calculated Lead-Out __:__:FF
-	
+
 	if(!(bin = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
 		printf("Error: Cannot open %s\n\n", bin_path);
 		return -1;
 	}
-	
+
 	status = fseek(bin, 0, SEEK_END);
 	if (status != 0) {
 		printf("Error: Failed to seek %s\n", bin_path);
@@ -251,13 +251,13 @@ int GetLeadOut(unsigned char *hbuf)
 	if(debug != 0) {
 		printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
 	}
-	
+
 	// Additonally we can add a dbg printf of the sector count that's written in sector 16 for verification. Mmmm kinda waste of time
 	/* Tired of math already. sprintf + redo what was done with the cue sheet MSFs */
 	sprintf(&LeadOut[0], "%02d", leadoutM);
 	sprintf(&LeadOut[2], "%02d", leadoutS);
 	sprintf(&LeadOut[4], "%02d", leadoutF);
-	
+
 	hbuf[27] = ((LeadOut[0] - 48) * 16) + (LeadOut[1] - 48);
 	hbuf[28] = ((LeadOut[2] - 48) * 16) + (LeadOut[3] - 48);
 	hbuf[29] = ((LeadOut[4] - 48) * 16) + (LeadOut[5] - 48);
