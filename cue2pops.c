@@ -672,7 +672,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 	if((track_count == 0) || (track_count != index1_count)) { // Huh ?
-		printf("Error : Cannot count tracks\n\n");
+		printf("Error: Cannot count tracks\n\n");
 		free(cue_buf);
 		free(bin_path);
 		free(headerbuf);
@@ -1028,7 +1028,7 @@ int main(int argc, char **argv)
 
 	printf("Saving the virtual CD-ROM image. Please wait...\n");
 	if(!(vcd_file = fopen(vcd_name, "wb"))) {
-		printf("Error : Cannot write to %s\n\n", vcd_name);
+		printf("Error: Cannot write to %s\n\n", vcd_name);
 		free(bin_path);
 		free(headerbuf);
 		free(outbuf);
@@ -1039,7 +1039,7 @@ int main(int argc, char **argv)
 	free(headerbuf);
 
 	if(!(vcd_file = fopen(vcd_name, "ab+"))) {
-		printf("Error : Cannot write to %s\n\n", vcd_name);
+		printf("Error: Cannot write to %s\n\n", vcd_name);
 		free(bin_path);
 		free(outbuf);
 		return 0;
