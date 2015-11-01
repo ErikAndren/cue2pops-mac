@@ -271,18 +271,19 @@ int GetLeadOut(unsigned char *hbuf)
 int main(int argc, char **argv)
 {
 	FILE *bin_file; //bin_file is used for opening the BIN that's attached to the cue.
-	FILE *cue_file; //cue_file is used for opening the CUE
-	size_t result;
-
 	char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 
+	size_t result;
+
+	FILE *cue_file; //cue_file is used for opening the CUE
 	char *cue_buf; // Buffer for the cue sheet
+	char *cue_ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
+
 	int cue_size; // Size of the cue sheet
 	int binary_count = 0; // Number of "BINARY" occurrences in the cue
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
 	int index1_count = 0; // Number of "INDEX 01" occurrences in the cue
 	int wave_count = 0; // Number of "WAVE" occurrences in the cue
-	char *cue_ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
 	char answer[3]; // Where the user answer is stored. Used in the CDRWIN fix prompt shit
 
 	unsigned char *headerbuf; // Buffer for the POPS header
@@ -1349,7 +1350,9 @@ int main(int argc, char **argv)
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 				if(i + HEADERSIZE >= bin_size) {
 					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
-				} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				} else {
+					fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+				}
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1449,7 +1452,9 @@ int main(int argc, char **argv)
 			if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
 			if(i + HEADERSIZE >= bin_size) {
 				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
-			} else fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+			} else {
+				fwrite(outbuf, HEADERSIZE, 1, vcd_file);
+			}
 		}
 	}
 	if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
