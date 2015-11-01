@@ -39,6 +39,7 @@ int GameTitle = 0;
 int GameTrained = 0;
 int GameFixed = 0;
 
+extern int errno;
 
 
 void GameIdentifier(unsigned char *inbuf)
@@ -206,32 +207,34 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 	}
 }
 
-int GetBinSize(char *bin_name)
+int GetFileSize(char *file_name)
 {
 	FILE *bin;
 	int status;
 	int size;
 
-	if(!(bin = fopen(bin_name, "rb"))) { // Open the BINARY that is attached to the cue
-		printf("Error: Cannot open %s\n\n", bin_name);
+	if(!(bin = fopen(file_name, "rb"))) {
+		printf("Error: Cannot open %s\n\n", file_name);
 		return -1;
 	}
 
 	status = fseek(bin, 0, SEEK_END);
 	if (status != 0) {
-		printf("Error: Failed to seek %s\n", bin_name);
+		printf("Error: Failed to seek %s\n", file_name);
 		return -1;
 	}
 
 	size = ftell(bin); // Get it's size
 	if (bin_size == -1L) {
-		printf("Error: Failed to get file %s size\n", bin_name);
+		printf("Error: Failed to get file %s size\n", file_name);
 		return -1;
 	}
 	fclose(bin);
 
 	return size;
 }
+
+
 
 
 int GetLeadOut(unsigned char *hbuf)
@@ -276,6 +279,9 @@ int GetLeadOut(unsigned char *hbuf)
 
 int main(int argc, char **argv)
 {
+	FILE *cue_file;
+	size_t result;
+
 	char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 
 	char *cuebuf; // Buffer for the cue sheet
@@ -468,16 +474,32 @@ int main(int argc, char **argv)
 	}
 
 
-	if(!(file = fopen(argv[1], "rb"))) { // Open the cue sheet
-		printf("Error: Cannot open %s\n\n", argv[1]);
+	cuesize = GetFileSize(argv[1]);
+	if (cuesize < 0) {
+		printf("Failed to open cuefile %s, error %s\n", argv[1], strerror(errno));
 		return 0;
 	}
-	fseek(file, 0, SEEK_END);
-	cuesize = ftell(file);
-	rewind(file);
+
+	cue_file = fopen(argv[1], "rb");
+	if (cue_file == NULL) {
+		printf("Failed to open cuefile %s, error %s\n", argv[1], strerror(errno));
+		return 0;
+	}
+
+	rewind(cue_file);
 	cuebuf = malloc(cuesize * 2);
-	fread(cuebuf, cuesize, 1, file);
-	fclose(file);
+	if (cuebuf == NULL) {
+		printf("Failed to allocate memory for the cue buffer\n");
+		return 0;
+	}
+
+	result = fread(cuebuf, cuesize, 1, cue_file);
+	if (result != 1) {
+		printf("Failed to copy the cue to memory\n");
+		free(cuebuf);
+		return 0;
+	}
+	fclose(cue_file);
 
 	ptr = strstr(cuebuf, "INDEX 01 ");
 	ptr += 9;
@@ -997,7 +1019,7 @@ int main(int argc, char **argv)
 	}
 	free(cuebuf);
 
-	bin_size = GetBinSize(bin_path);
+	bin_size = GetFileSize(bin_path);
 	if (bin_size < 0) {
 		free(bin_path);
 		free(headerbuf);
