@@ -21,6 +21,8 @@ const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN ima
 FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
 char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 const int sectorsize = 2352; // Sector size
+const int headersize = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
+
 
 int vmode = 0; // User command status (vmode)
 int trainer = 0; // User command status (trainer)
@@ -31,7 +33,6 @@ int track_count = 0;; // Number of "TRACK " occurrences in the cue
 int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
 int daTrack_ptr = 0; // Indicates the location of the pregap that's between the data track and the first audio track
-int headersize = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
 int deny_vmode = 0; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
 int fix_game = 0;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
