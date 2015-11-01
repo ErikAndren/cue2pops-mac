@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 	char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 
 	char *cue_buf; // Buffer for the cue sheet
-	int cuesize; // Size of the cue sheet
+	int cue_size; // Size of the cue sheet
 	int cue_ptr;  // Indicates the location of the current INDEX 01 entry in the cue sheet
 	int binary_count = 0; // Number of "BINARY" occurrences in the cue
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
@@ -474,8 +474,8 @@ int main(int argc, char **argv)
 	}
 
 
-	cuesize = GetFileSize(argv[1]);
-	if (cuesize < 0) {
+	cue_size = GetFileSize(argv[1]);
+	if (cue_size < 0) {
 		printf("Failed to open cuefile %s, error %s\n", argv[1], strerror(errno));
 		return 0;
 	}
@@ -487,13 +487,13 @@ int main(int argc, char **argv)
 	}
 
 	rewind(cue_file);
-	cue_buf = malloc(cuesize * 2);
+	cue_buf = malloc(cue_size * 2);
 	if (cue_buf == NULL) {
 		printf("Failed to allocate memory for the cue buffer\n");
 		return 0;
 	}
 
-	result = fread(cue_buf, cuesize, 1, cue_file);
+	result = fread(cue_buf, cue_size, 1, cue_file);
 	if (result != 1) {
 		printf("Failed to copy the cue to memory\n");
 		free(cue_buf);
@@ -517,7 +517,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	for(i = 0; i < cuesize; i++) {
+	for(i = 0; i < cue_size; i++) {
 		if(cue_buf[i] == '"') {
 			cue_buf[i] = '\0';
 		}
@@ -641,7 +641,7 @@ int main(int argc, char **argv)
 	/*******************************************************************************************************
 	*******************************************************************************************************/
 
-	for(i = 0; i < cuesize; i++) { // Since I've nulled some chars in the BIN handler, here I prelocate the TRACK 01 string so the track type substring can be found
+	for(i = 0; i < cue_size; i++) { // Since I've nulled some chars in the BIN handler, here I prelocate the TRACK 01 string so the track type substring can be found
 		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') break;
 	}
 
@@ -656,7 +656,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	for(i = 0; i < cuesize; i++) {
+	for(i = 0; i < cue_size; i++) {
 		/* Clean out some crap in the cue_buf */
 		if(cue_buf[i] == ':') cue_buf[i] = '\0';
 		if(cue_buf[i] == 0x0D) cue_buf[i] = '\0';
@@ -728,7 +728,7 @@ int main(int argc, char **argv)
 	for(i = 0; i < track_count; i++) {
 		header_ptr += 10; // Put the pointer at the start of the correct track entry
 
-		for(cue_ptr = 0; cue_ptr < cuesize; cue_ptr++) {
+		for(cue_ptr = 0; cue_ptr < cue_size; cue_ptr++) {
 			if(cue_buf[cue_ptr] == 'T' && cue_buf[cue_ptr+1] == 'R' && cue_buf[cue_ptr+2] == 'A' && cue_buf[cue_ptr+3] == 'C' && cue_buf[cue_ptr+4] == 'K' && cue_buf[cue_ptr+5] == ' ') {
 				cue_buf[cue_ptr] = '\0';
 				cue_buf[cue_ptr + 1] = '\0';
@@ -755,7 +755,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		for(cue_ptr = 0; cue_ptr < cuesize; cue_ptr++) {
+		for(cue_ptr = 0; cue_ptr < cue_size; cue_ptr++) {
 			if(cue_buf[cue_ptr] == 'I' && cue_buf[cue_ptr+1] == 'N' && cue_buf[cue_ptr+2] == 'D' && cue_buf[cue_ptr+3] == 'E' && cue_buf[cue_ptr+4] == 'X' && cue_buf[cue_ptr+5] == ' ' && cue_buf[cue_ptr+6] == '0' && cue_buf[cue_ptr+7] == '0') {
 				gap_ptr = cue_ptr; // Memoryze the location of the INDEX 00 entry
 				cue_buf[cue_ptr] = '\0';
