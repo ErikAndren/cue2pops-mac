@@ -451,13 +451,13 @@ int main(int argc, char **argv)
 	}
 
 
-	cue_size = GetFileSize(argv[1]);
+	cue_size = GetFileSize(cue_name);
 	if (cue_size < 0) {
 		printf("Failed to open cuefile %s, error %s\n", argv[1], strerror(errno));
 		return 0;
 	}
 
-	cue_file = fopen(argv[1], "rb");
+	cue_file = fopen(cue_name, "rb");
 	if (cue_file == NULL) {
 		printf("Failed to open cuefile %s, error %s\n", argv[1], strerror(errno));
 		return 0;
@@ -502,7 +502,7 @@ int main(int argc, char **argv)
 	cue_ptr++; // Jump to the BINARY name/path starting with "
 
 
-	bin_path = malloc((strlen(cue_ptr) + strlen(argv[1])) * 2);
+	bin_path = malloc((strlen(cue_ptr) + strlen(cue_name)) * 2);
 	if (bin_path == NULL) {
 		printf("Error: Failed to allocate memory for the bin_path string\n");
 		free(cue_buf);
@@ -516,9 +516,9 @@ int main(int argc, char **argv)
 		}
 	}
 	if(i == 0) { // If no..
-		for(i = strlen(argv[1]); i > 0; i--) { // Does the arg have the full cue path ?
-		  if((argv[1][i] == '\\') || (argv[1][i] == '/')) {
-		    break; // YES !
+		for(i = strlen(cue_name); i > 0; i--) { // Does the arg have the full cue path ?
+		  if((cue_name[i] == '\\') || (cue_name[i] == '/')) {
+		    break; // YES!
 		  }
 		}
 
@@ -526,7 +526,7 @@ int main(int argc, char **argv)
 		  // Having a filename without hierarchy is perfectly ok.
 		  strcpy(bin_path, cue_ptr);
 		} else { // Here we've got the full CUE path. We're gonna use it to make the BIN path.
-			strcpy(bin_path, argv[1]);
+			strcpy(bin_path, cue_name);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
 			for(i = strlen(bin_path); i > 0; i--) {
 			  if((bin_path[i] == '\\') || (bin_path[i] == '/'))
@@ -537,13 +537,16 @@ int main(int argc, char **argv)
 			i = strlen(bin_path);
 			strcpy(bin_path + i, cue_ptr);
 			i = strlen(bin_path);
-			if(argv[1][0] == '"') bin_path[i] = '"';
-			else bin_path[i] = '\0';
+			if(cue_name[0] == '"') {
+				bin_path[i] = '"';
+			} else {
+				bin_path[i] = '\0';
+			}
 		}
 	}
 
 	if(debug != 0) {
-		printf("CUE Path   = %s\n", argv[1]);
+		printf("CUE Path   = %s\n", cue_name);
 		printf("BIN Path   = %s\n\n", bin_path);
 	}
 
@@ -1040,8 +1043,8 @@ int main(int argc, char **argv)
 	/* 2 user arguments : no command, output file is user argument 2 */
 	if(gap_more == 0 && gap_less == 0 && vmode == 0 && trainer == 0 && argc == 3) {
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(vcd_file = fopen(argv[2], "wb"))) {
-			printf("Error : Cannot write to %s\n\n", argv[2]);
+		if(!(vcd_file = fopen(vcd_name, "wb"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(headerbuf);
 			free(outbuf);
@@ -1051,8 +1054,8 @@ int main(int argc, char **argv)
 		fclose(vcd_file);
 		free(headerbuf);
 
-		if(!(vcd_file = fopen(argv[2], "ab+"))) {
-			printf("Error : Cannot write to %s\n\n", argv[2]);
+		if(!(vcd_file = fopen(vcd_name, "ab+"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(outbuf);
 			return 0;
@@ -1117,15 +1120,15 @@ int main(int argc, char **argv)
 		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
-		printf("%s\n\n", argv[2]);
+		printf("%s\n\n", vcd_name);
 		return 1;
 	}
 
 	/* 3 user arguments : 1 command, the command is user argument 2, output file is user argument 3 */
 	if(((gap_more == 0 && vmode == 0 && trainer == 1) || (gap_less == 0 && vmode == 0 && trainer == 1) || (gap_more == 1 && vmode == 0 && trainer == 0) || (gap_less == 1 && vmode == 0 && trainer == 0) || (gap_more == 0 && gap_less == 0 && vmode == 1 && trainer == 0)) && argc == 4) {
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(vcd_file = fopen(argv[3], "wb"))) {
-			printf("Error : Cannot write to %s\n\n", argv[3]);
+		if(!(vcd_file = fopen(vcd_name, "wb"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(headerbuf);
 			free(outbuf);
@@ -1136,8 +1139,8 @@ int main(int argc, char **argv)
 		free(headerbuf);
 
 
-		if(!(vcd_file = fopen(argv[3], "ab+"))) {
-			printf("Error : Cannot write to %s\n\n", argv[3]);
+		if(!(vcd_file = fopen(vcd_name, "ab+"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(outbuf);
 			return 0;
@@ -1202,15 +1205,15 @@ int main(int argc, char **argv)
 		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
-		printf("%s\n\n", argv[3]);
+		printf("%s\n\n", vcd_name);
 		return 1;
 	}
 
 	/* 4 user arguments : 2 commands, commands are user arguments 2 and 3, output file is user argument 4 */
 	if(((gap_more == 1 && vmode == 0 && trainer == 1) || (gap_less == 1 && vmode == 0 && trainer == 1) || (gap_more == 1 && vmode == 1 && trainer == 0) || (gap_less == 1 && vmode == 1 && trainer == 0) || (gap_more == 0 && gap_less == 0 && vmode == 1 && trainer == 1)) && argc == 5) {
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(vcd_file = fopen(argv[4], "wb"))) {
-			printf("Error : Cannot write to %s\n\n", argv[4]);
+		if(!(vcd_file = fopen(vcd_name, "wb"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(headerbuf);
 			free(outbuf);
@@ -1221,8 +1224,8 @@ int main(int argc, char **argv)
 		free(headerbuf);
 
 
-		if(!(vcd_file = fopen(argv[4], "ab+"))) {
-			printf("Error : Cannot write to %s\n\n", argv[4]);
+		if(!(vcd_file = fopen(vcd_name, "ab+"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(outbuf);
 			return 0;
@@ -1287,15 +1290,15 @@ int main(int argc, char **argv)
 		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
-		printf("%s\n\n", argv[4]);
+		printf("%s\n\n", vcd_name);
 		return 1;
 	}
 
 	/* 5 user arguments : 3 commands; Commands are user arguments 2, 3 and 4; Output file is user argument 5 */
 	if(argc == 6) {
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
-		if(!(vcd_file = fopen(argv[5], "wb"))) {
-			printf("Error : Cannot write to %s\n\n", argv[5]);
+		if(!(vcd_file = fopen(vcd_name, "wb"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(headerbuf);
 			free(outbuf);
@@ -1305,8 +1308,8 @@ int main(int argc, char **argv)
 		fclose(vcd_file);
 		free(headerbuf);
 
-		if(!(vcd_file = fopen(argv[5], "ab+"))) {
-			printf("Error : Cannot write to %s\n\n", argv[5]);
+		if(!(vcd_file = fopen(vcd_name, "ab+"))) {
+			printf("Error : Cannot write to %s\n\n", vcd_name);
 			free(bin_path);
 			free(outbuf);
 			return 0;
@@ -1371,35 +1374,13 @@ int main(int argc, char **argv)
 		fclose(vcd_file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
-		printf("%s\n\n", argv[5]);
+		printf("%s\n\n", vcd_name);
 		return 1;
 	}
 
-	/* Default, if none of the above cases returned or argc == 2, output file is the input file name plus the extension ".VCD" */
-	i = strlen(argv[1]);
-	for(; i > 0; i--) { // Search the extension ".cue" and ".CUE" in the input file name
-		if((argv[1][i] == '.' && argv[1][i+1] == 'c' && argv[1][i+2] == 'u' && argv[1][i+3] == 'e') || (argv[1][i] == '.' && argv[1][i+1] == 'C' && argv[1][i+2] == 'U' && argv[1][i+3] == 'E'))
-		break;
-	}
-	if(i >= 0) { // Found extension ".cue" or ".CUE", replace it with ".VCD"
-		if(argv[1][i] == '"') argv[1][i + 4] = '"';
-		else argv[1][i + 4] = '\0';
-		argv[1][i + 1] = 'V';
-		argv[1][i + 2] = 'C';
-		argv[1][i + 3] = 'D';
-	} else { // Extension ".cue" or ".CUE" not found, put ".VCD" at the end of the input file name
-		i = strlen(argv[1]);
-		if(argv[1][i] == '"') argv[1][i + 4] = '"';
-		else argv[1][i + 4] = '\0';
-		argv[1][i] = '.';
-		argv[1][i + 1] = 'V';
-		argv[1][i + 2] = 'C';
-		argv[1][i + 3] = 'D';
-	}
-
 	printf("Saving the virtual CD-ROM image. Please wait...\n");
-	if(!(vcd_file = fopen(argv[1], "wb"))) {
-		printf("Error : Cannot write to %s\n\n", argv[1]);
+	if(!(vcd_file = fopen(vcd_name, "wb"))) {
+		printf("Error : Cannot write to %s\n\n", vcd_name);
 		free(bin_path);
 		free(headerbuf);
 		free(outbuf);
@@ -1410,8 +1391,8 @@ int main(int argc, char **argv)
 	fclose(vcd_file);
 	free(headerbuf);
 
-	if(!(vcd_file = fopen(argv[1], "ab+"))) {
-		printf("Error : Cannot write to %s\n\n", argv[1]);
+	if(!(vcd_file = fopen(vcd_name, "ab+"))) {
+		printf("Error : Cannot write to %s\n\n", vcd_name);
 		free(bin_path);
 		free(outbuf);
 		return 0;
@@ -1476,7 +1457,7 @@ int main(int argc, char **argv)
 	fclose(vcd_file);
 
 	printf("A POPS virtual CD-ROM image was saved to :\n");
-	printf("%s\n\n", argv[1]);
+	printf("%s\n\n", vcd_name);
 
 	return 1;
 }
