@@ -20,8 +20,8 @@ const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN ima
 
 FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
 char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
-const int sectorsize = 2352; // Sector size
-const int headersize = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
+const int SECTORSIZE = 2352; // Sector size
+const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
 
 int vmode = 0; // User command status (vmode)
@@ -54,7 +54,7 @@ void GameIdentifier(unsigned char *inbuf)
 	}
 
 	if(GameTitle == 0) {
-		for(ptr = 0; ptr < headersize; ptr += 4) {
+		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'E' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '-' && inbuf[ptr+5] == '0' && inbuf[ptr+6] == '0' && inbuf[ptr+7] == '3' && inbuf[ptr+8] == '4' && inbuf[ptr+9] == '4' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' ' && inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
 				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
 				printf("Crash Bandicoot [SCES-00344]\n");
@@ -120,7 +120,7 @@ void GameFixer(unsigned char *inbuf)
 	int ptr;
 
 	if(GameFixed == 0) {
-		for(ptr = 0; ptr < headersize; ptr += 4) {
+		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
 			if(GameTitle == 4) {
 				if(inbuf[ptr] == 0x78 && inbuf[ptr+1] == 0x26 && inbuf[ptr+2] == 0x43 && inbuf[ptr+3] == 0x8C) inbuf[ptr] = 0x74;
 				if(inbuf[ptr] == 0xE8 && inbuf[ptr+1] == 0x75 && inbuf[ptr+2] == 0x06 && inbuf[ptr+3] == 0x80) {
@@ -141,7 +141,7 @@ void GameTrainer(unsigned char *inbuf)
 	int ptr;
 
 	if(GameTrained == 0) {
-		for(ptr = 0; ptr < headersize; ptr += 4) {
+		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
 			if(GameTitle == 1) {
 				if(inbuf[ptr] == 0x7C && inbuf[ptr+1] == 0x16 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
@@ -178,10 +178,10 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 {
 	int ptr;
 
-	for(ptr = 0; ptr < headersize; ptr += 4) {
+	for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
 		if((inbuf[ptr] == 0x13 && inbuf[ptr+1] == 0x00 && (inbuf[ptr+2] == 0x90 || inbuf[ptr+2] == 0x91) && inbuf[ptr+3] == 0x24) && (inbuf[ptr+4] == 0x10 && inbuf[ptr+5] == 0x00 && (inbuf[ptr+6] == 0x90 || inbuf[ptr+6] == 0x91) && inbuf[ptr+7] == 0x24)) {
 			// ?? 00 90 24 ?? 00 90 24 || ?? 00 91 24 ?? 00 91 24 || ?? 00 91 24 ?? 00 90 24 || ?? 00 90 24 ?? 00 91 24
-			printf("Y-Pos pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / sectorsize, headersize + tracker + ptr);
+			printf("Y-Pos pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
 			inbuf[ptr] = 0xF8;		// 2013/05/16, v2.0 : Also apply the fix here, in case NTSCpatcher cannot find/patch the video mode
 			inbuf[ptr+1] = 0xFF;	// 2013/05/16, v2.0 : //
 			inbuf[ptr+4] = 0xF8;
@@ -189,9 +189,9 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 			printf("----------------------------------------------------------------------------------\n");
 		} else if(inbuf[ptr+2] != 0xBD && inbuf[ptr+3] != 0x27 && inbuf[ptr+4] == 0x08 && inbuf[ptr+5] == 0x00 && inbuf[ptr+6] == 0xE0 && inbuf[ptr+7] == 0x03 && inbuf[ptr+14] == 0x02 && inbuf[ptr+15] == 0x3C && inbuf[ptr+18] == 0x42 && inbuf[ptr+19] == 0x8C && inbuf[ptr+20] == 0x08 && inbuf[ptr+21] == 0x00 && inbuf[ptr+22] == 0xE0 && inbuf[ptr+23] == 0x03 && inbuf[ptr+24] == 0x00 && inbuf[ptr+25] == 0x00 && inbuf[ptr+26] == 0x00 && inbuf[ptr+27] == 0x00 && ((inbuf[ptr+2] == 0x24 && inbuf[ptr+3] == 0xAC) || (inbuf[ptr+6] == 0x24 && inbuf[ptr+7] == 0xAC) || (inbuf[ptr+10] == 0x24 && inbuf[ptr+11] == 0xAC))) {
 			// ?? ?? ?? ?? 08 00 E0 03 ?? ?? ?? ?? ?? ?? 02 3C ?? ?? 42 8C 08 00 E0 03 00 00 00 00
-			if(deny_vmode != 0) printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / sectorsize, headersize + tracker + ptr);
+			if(deny_vmode != 0) printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
 			if(deny_vmode == 0) {
-				printf("VMODE pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / sectorsize, headersize + tracker + ptr);
+				printf("VMODE pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
 				inbuf[ptr+12] = 0x00;
 				inbuf[ptr+13] = 0x00;
 				inbuf[ptr+14] = 0x00;
@@ -240,14 +240,14 @@ int GetLeadOut(unsigned char *hbuf)
 	}
 	fclose(bin);
 
-	sector_count = (bin_size / sectorsize) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
+	sector_count = (bin_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
 	leadoutM = sector_count / 4500;
 	leadoutS = (sector_count - leadoutM * 4500) / 75;
 	leadoutF = sector_count - leadoutM * 4500 - leadoutS * 75;
 	if(debug != 0) {
 		printf("Calculated Lead-Out MSF = %02d:%02d:%02d\n", leadoutM, leadoutS, leadoutF);
 	}
-	sector_count = (bin_size / sectorsize) + (150 * (pregap_count + postgap_count));
+	sector_count = (bin_size / SECTORSIZE) + (150 * (pregap_count + postgap_count));
 	if(debug != 0) {
 		printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
 	}
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 	char answer[3]; // Where the user answer is stored. Used in the CDRWIN fix prompt shit
 
 	unsigned char *headerbuf; // Buffer for the POPS header
-	unsigned char outbuf[headersize]; // File I/O cache
+	unsigned char outbuf[HEADERSIZE]; // File I/O cache
 	int header_ptr = 20; // Integer that points to a location of the POPS header buffer. Decimal 20 is the start of the descriptor "A2"
 	int i; // Tracker
 	int m; // Calculated and formatted MM:__:__ of the current index
@@ -532,7 +532,7 @@ int main(int argc, char **argv)
 		printf("BIN Path   = %s\n\n", bin_path);
 	}
 
-	headerbuf = malloc(headersize * 2);
+	headerbuf = malloc(HEADERSIZE * 2);
 
 	/*******************************************************************************************************
 	********************************************************************************************************
@@ -740,18 +740,18 @@ int main(int argc, char **argv)
 				f = ((cuebuf[cue_ptr + 15] - 48) * 16) + (cuebuf[cue_ptr + 16] - 48);
 
 				if(daTrack_ptr == 0 && headerbuf[10] == 0x01 && gap_ptr != 0) { // Targets the first AUDIO track INDEX 00 MSF
-					daTrack_ptr = (((((cuebuf[gap_ptr + 9] - 48) * 10) + (cuebuf[gap_ptr + 10] - 48)) * 4500) + ((((cuebuf[gap_ptr + 12] - 48) * 10) + (cuebuf[gap_ptr + 13] - 48)) * 75) + (((cuebuf[gap_ptr + 15] - 48) * 10) + (cuebuf[gap_ptr + 16] - 48))) * sectorsize;
+					daTrack_ptr = (((((cuebuf[gap_ptr + 9] - 48) * 10) + (cuebuf[gap_ptr + 10] - 48)) * 4500) + ((((cuebuf[gap_ptr + 12] - 48) * 10) + (cuebuf[gap_ptr + 13] - 48)) * 75) + (((cuebuf[gap_ptr + 15] - 48) * 10) + (cuebuf[gap_ptr + 16] - 48))) * SECTORSIZE;
 					if(debug != 0) {
 						printf("daTrack_ptr hit on TRACK %02d AUDIO INDEX 00 MSF minus 2 seconds !\n", i + 1);
 						printf("Current daTrack_ptr = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
-						printf("daTrack_ptr LBA     = %d (%Xh)\n\n", daTrack_ptr / sectorsize, daTrack_ptr / sectorsize);
+						printf("daTrack_ptr LBA     = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
 					}
 				} else if(daTrack_ptr == 0 && headerbuf[10] == 0x01 && gap_ptr == 0) { // Targets the first AUDIO track INDEX 01 MSF
-					daTrack_ptr = (((((cuebuf[cue_ptr + 9] - 48) * 10) + (cuebuf[cue_ptr + 10] - 48)) * 4500) + ((((cuebuf[cue_ptr + 12] - 48) * 10) + (cuebuf[cue_ptr + 13] - 48)) * 75) + (((cuebuf[cue_ptr + 15] - 48) * 10) + (cuebuf[cue_ptr + 16] - 48))) * sectorsize;
+					daTrack_ptr = (((((cuebuf[cue_ptr + 9] - 48) * 10) + (cuebuf[cue_ptr + 10] - 48)) * 4500) + ((((cuebuf[cue_ptr + 12] - 48) * 10) + (cuebuf[cue_ptr + 13] - 48)) * 75) + (((cuebuf[cue_ptr + 15] - 48) * 10) + (cuebuf[cue_ptr + 16] - 48))) * SECTORSIZE;
 					if(debug != 0) {
 						printf("daTrack_ptr hit on TRACK %02d AUDIO INDEX 01 MSF minus 2 seconds !\n", i + 1);
 						printf("Current daTrack_ptr = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
-						printf("daTrack_ptr LBA     = %d (%Xh)\n\n", daTrack_ptr / sectorsize, daTrack_ptr / sectorsize);
+						printf("daTrack_ptr LBA     = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
 					}
 				} else if(daTrack_ptr == 0 && headerbuf[10] == 0x41 && i == track_count - 1) { // Targets the EOF (if no audio track was found)
 					noCDDA = 1; // 2013/05/16 - v2.0
@@ -986,7 +986,7 @@ int main(int argc, char **argv)
 	if(noCDDA == 1) daTrack_ptr = bin_size; // 2013/04/22 - v1.2 : Set it now. If no CDDA track was found in the game dump, the NTSC patcher will proceed in scanning the whole BIN.
 	if(noCDDA == 1 && debug != 0) {			// 2013/05/16 - v2.0 : dbg please
 		printf("Current daTrack_ptr     = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
-		printf("daTrack_ptr LBA         = %d (%Xh)\n\n", daTrack_ptr / sectorsize, daTrack_ptr / sectorsize);
+		printf("daTrack_ptr LBA         = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
 	}
 
 	memcpy(headerbuf + 1032, &sector_count, 4); // Sector Count (LEHEX)
@@ -1006,7 +1006,7 @@ int main(int argc, char **argv)
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, headersize, file);
+		fwrite(headerbuf, 1, HEADERSIZE, file);
 		fclose(file);
 		free(headerbuf);
 
@@ -1024,15 +1024,15 @@ int main(int argc, char **argv)
 		}
 		free(bin_path);
 
-		for(i = 0; i < bin_size; i += headersize) {
-			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
+		for(i = 0; i < bin_size; i += HEADERSIZE) {
+			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
-				char padding[(150 * sectorsize) * 2];
-				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
+				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				char padding[(150 * SECTORSIZE) * 2];
+				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1045,7 +1045,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, bin_file);
+				fread(outbuf, HEADERSIZE, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1054,9 +1054,9 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= bin_size) {
-					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
-				} else fwrite(outbuf, headersize, 1, file);
+				if(i + HEADERSIZE >= bin_size) {
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
+				} else fwrite(outbuf, HEADERSIZE, 1, file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1084,7 +1084,7 @@ int main(int argc, char **argv)
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, headersize, file);
+		fwrite(headerbuf, 1, HEADERSIZE, file);
 		fclose(file);
 		free(headerbuf);
 
@@ -1102,15 +1102,15 @@ int main(int argc, char **argv)
 		}
 		free(bin_path);
 
-		for(i = 0; i < bin_size; i += headersize) {
-			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
+		for(i = 0; i < bin_size; i += HEADERSIZE) {
+			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
-				char padding[(150 * sectorsize) * 2];
-				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
+				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				char padding[(150 * SECTORSIZE) * 2];
+				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1123,7 +1123,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, bin_file);
+				fread(outbuf, HEADERSIZE, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1132,9 +1132,9 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= bin_size) {
-					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
-				} else fwrite(outbuf, headersize, 1, file);
+				if(i + HEADERSIZE >= bin_size) {
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
+				} else fwrite(outbuf, HEADERSIZE, 1, file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1162,7 +1162,7 @@ int main(int argc, char **argv)
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, headersize, file);
+		fwrite(headerbuf, 1, HEADERSIZE, file);
 		fclose(file);
 		free(headerbuf);
 
@@ -1180,15 +1180,15 @@ int main(int argc, char **argv)
 		}
 		free(bin_path);
 
-		for(i = 0; i < bin_size; i += headersize) {
-			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
+		for(i = 0; i < bin_size; i += HEADERSIZE) {
+			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
-				char padding[(150 * sectorsize) * 2];
-				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
+				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				char padding[(150 * SECTORSIZE) * 2];
+				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1201,7 +1201,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, bin_file);
+				fread(outbuf, HEADERSIZE, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1210,9 +1210,9 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= bin_size) {
-					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
-				} else fwrite(outbuf, headersize, 1, file);
+				if(i + HEADERSIZE >= bin_size) {
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
+				} else fwrite(outbuf, HEADERSIZE, 1, file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1240,7 +1240,7 @@ int main(int argc, char **argv)
 			free(headerbuf);
 			return 0;
 		}
-		fwrite(headerbuf, 1, headersize, file);
+		fwrite(headerbuf, 1, HEADERSIZE, file);
 		fclose(file);
 		free(headerbuf);
 
@@ -1258,15 +1258,15 @@ int main(int argc, char **argv)
 		}
 		free(bin_path);
 
-		for(i = 0; i < bin_size; i += headersize) {
-			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
+		for(i = 0; i < bin_size; i += HEADERSIZE) {
+			if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
-				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
-				char padding[(150 * sectorsize) * 2];
-				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
-				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
+				fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+				char padding[(150 * SECTORSIZE) * 2];
+				fwrite(padding, 150 * SECTORSIZE, 1, file);
+				fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
+				fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
 					printf(" Done.\n");
@@ -1279,7 +1279,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, bin_file);
+				fread(outbuf, HEADERSIZE, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1288,9 +1288,9 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= bin_size) {
-					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
-				} else fwrite(outbuf, headersize, 1, file);
+				if(i + HEADERSIZE >= bin_size) {
+					fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
+				} else fwrite(outbuf, HEADERSIZE, 1, file);
 			}
 		}
 		if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
@@ -1339,7 +1339,7 @@ int main(int argc, char **argv)
 		free(headerbuf);
 		return 0;
 	}
-	fwrite(headerbuf, 1, headersize, file);
+	fwrite(headerbuf, 1, HEADERSIZE, file);
 	fclose(file);
 	free(headerbuf);
 
@@ -1357,15 +1357,15 @@ int main(int argc, char **argv)
 	}
 	free(bin_path);
 
-	for(i = 0; i < bin_size; i += headersize) {
-		if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
+	for(i = 0; i < bin_size; i += HEADERSIZE) {
+		if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
 			if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-			fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
-			fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
-			char padding[(150 * sectorsize) * 2];
-			fwrite(padding, 150 * sectorsize, 1, file);
-			fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
-			fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
+			fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
+			fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, file);
+			char padding[(150 * SECTORSIZE) * 2];
+			fwrite(padding, 150 * SECTORSIZE, 1, file);
+			fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
+			fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, file);
 			fix_CDRWIN = 0;
 			if(debug != 0) {
 				printf(" Done.\n");
@@ -1378,7 +1378,7 @@ int main(int argc, char **argv)
 				printf("NTSC Patcher is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
-			fread(outbuf, headersize, 1, bin_file);
+			fread(outbuf, HEADERSIZE, 1, bin_file);
 			if(i == 0) GameIdentifier(outbuf);
 			if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 				printf("GameTrainer is ON\n");
@@ -1387,9 +1387,9 @@ int main(int argc, char **argv)
 			if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 			if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-			if(i + headersize >= bin_size) {
-				fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
-			} else fwrite(outbuf, headersize, 1, file);
+			if(i + HEADERSIZE >= bin_size) {
+				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, file);
+			} else fwrite(outbuf, HEADERSIZE, 1, file);
 		}
 	}
 	if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
