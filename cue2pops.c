@@ -223,7 +223,7 @@ int GetFileSize(char *file_name)
 		return -1;
 	}
 
-	size = ftell(file_handle); // Get it's size
+	size = ftell(file_handle);
 	if (size == -1L) {
 		printf("Error: Failed to get file %s size\n", file_name);
 		return -1;
