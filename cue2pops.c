@@ -991,8 +991,8 @@ int main(int argc, char **argv)
 		printf("daTrack_ptr LBA         = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
 	}
 
-	memcpy(headerbuf + 1032, &sector_count, 4); // Sector Count (LEHEX)
-	memcpy(headerbuf + 1036, &sector_count, 4); // Sector Count (LEHEX)
+	memcpy(headerbuf + 1032, &sector_count, sizeof(sector_count)); // Sector Count (LEHEX)
+	memcpy(headerbuf + 1036, &sector_count, sizeof(sector_count)); // Sector Count (LEHEX)
 
 	headerbuf[1024] = 0x6B;
 	headerbuf[1025] = 0x48;
