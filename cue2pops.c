@@ -18,7 +18,7 @@
 
 int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
 
-FILE *file, *leech; //file is used for opening the input cue and the output file, leech is used for opening the BIN that's attached to the cue.
+FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
 char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
 int sectorsize = 0; // Sector size
 int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
@@ -28,7 +28,7 @@ int gap_less = 0; // User command status (gap--)
 int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 char LeadOut[7]; // Formatted Lead-Out MM:SS:FF
-int dumpsize; // BIN (disc image) size
+int bin_size; // BIN (disc image) size
 int sector_count; // Calculated number of sectors
 int leadoutM; // Calculated Lead-Out MM:__:__
 int leadoutS; // Calculated Lead-Out __:SS:__
@@ -224,15 +224,15 @@ int GetLeadOut(void)
 		return -1;
 	}
 	fseek(file, 0, SEEK_END);
-	dumpsize = ftell(file); // Get it's size
+	bin_size = ftell(file); // Get it's size
 	fclose(file);
 
-	sector_count = (dumpsize / sectorsize) + (150 * (pregap_count + postgap_count)) + 150; // Convert the dumpsize to sector count
+	sector_count = (bin_size / sectorsize) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
 	leadoutM = sector_count / 4500;
 	leadoutS = (sector_count - leadoutM * 4500) / 75;
 	leadoutF = sector_count - leadoutM * 4500 - leadoutS * 75;
 	if(debug != 0) printf("Calculated Lead-Out MSF = %02d:%02d:%02d\n", leadoutM, leadoutS, leadoutF);
-	sector_count = (dumpsize / sectorsize) + (150 * (pregap_count + postgap_count));
+	sector_count = (bin_size / sectorsize) + (150 * (pregap_count + postgap_count));
 	if(debug != 0) printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
 	// Additonally we can add a dbg printf of the sector count that's written in sector 16 for verification. Mmmm kinda waste of time
 
@@ -962,7 +962,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if(noCDDA == 1) daTrack_ptr = dumpsize; // 2013/04/22 - v1.2 : Set it now. If no CDDA track was found in the game dump, the NTSC patcher will proceed in scanning the whole BIN.
+	if(noCDDA == 1) daTrack_ptr = bin_size; // 2013/04/22 - v1.2 : Set it now. If no CDDA track was found in the game dump, the NTSC patcher will proceed in scanning the whole BIN.
 	if(noCDDA == 1 && debug != 0) {			// 2013/05/16 - v2.0 : dbg please
 		printf("Current daTrack_ptr     = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
 		printf("daTrack_ptr LBA         = %d (%Xh)\n\n", daTrack_ptr / sectorsize, daTrack_ptr / sectorsize);
@@ -999,21 +999,21 @@ int main(int argc, char **argv)
 			return 0;
 		}
 
-		if(!(leech = fopen(bin_path, "rb"))) {
+		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
 			return 0;
 		}
 		free(bin_path);
 
-		for(i = 0; i < dumpsize; i += headersize) {
+		for(i = 0; i < bin_size; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, leech);
+				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
 				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
 				char padding[(150 * sectorsize) * 2];
 				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, leech);
+				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
 				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
@@ -1027,7 +1027,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, leech);
+				fread(outbuf, headersize, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1036,8 +1036,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= dumpsize) {
-					fwrite(outbuf, headersize - (i + headersize - dumpsize), 1, file);
+				if(i + headersize >= bin_size) {
+					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
 				} else fwrite(outbuf, headersize, 1, file);
 			}
 		}
@@ -1049,7 +1049,7 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
-		fclose(leech);
+		fclose(bin_file);
 		fclose(file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
@@ -1077,21 +1077,21 @@ int main(int argc, char **argv)
 			return 0;
 		}
 
-		if(!(leech = fopen(bin_path, "rb"))) {
+		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
 			return 0;
 		}
 		free(bin_path);
 
-		for(i = 0; i < dumpsize; i += headersize) {
+		for(i = 0; i < bin_size; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, leech);
+				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
 				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
 				char padding[(150 * sectorsize) * 2];
 				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, leech);
+				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
 				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
@@ -1105,7 +1105,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, leech);
+				fread(outbuf, headersize, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1114,8 +1114,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= dumpsize) {
-					fwrite(outbuf, headersize - (i + headersize - dumpsize), 1, file);
+				if(i + headersize >= bin_size) {
+					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
 				} else fwrite(outbuf, headersize, 1, file);
 			}
 		}
@@ -1127,7 +1127,7 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
-		fclose(leech);
+		fclose(bin_file);
 		fclose(file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
@@ -1155,21 +1155,21 @@ int main(int argc, char **argv)
 			return 0;
 		}
 
-		if(!(leech = fopen(bin_path, "rb"))) {
+		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
 			return 0;
 		}
 		free(bin_path);
 
-		for(i = 0; i < dumpsize; i += headersize) {
+		for(i = 0; i < bin_size; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, leech);
+				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
 				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
 				char padding[(150 * sectorsize) * 2];
 				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, leech);
+				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
 				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
@@ -1183,7 +1183,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, leech);
+				fread(outbuf, headersize, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1192,8 +1192,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= dumpsize) {
-					fwrite(outbuf, headersize - (i + headersize - dumpsize), 1, file);
+				if(i + headersize >= bin_size) {
+					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
 				} else fwrite(outbuf, headersize, 1, file);
 			}
 		}
@@ -1205,7 +1205,7 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
-		fclose(leech);
+		fclose(bin_file);
 		fclose(file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
@@ -1233,21 +1233,21 @@ int main(int argc, char **argv)
 			return 0;
 		}
 
-		if(!(leech = fopen(bin_path, "rb"))) {
+		if(!(bin_file = fopen(bin_path, "rb"))) {
 			printf("Error: Cannot open %s\n\n", bin_path);
 			free(bin_path);
 			return 0;
 		}
 		free(bin_path);
 
-		for(i = 0; i < dumpsize; i += headersize) {
+		for(i = 0; i < bin_size; i += headersize) {
 			if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
 				if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, leech);
+				fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
 				fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
 				char padding[(150 * sectorsize) * 2];
 				fwrite(padding, 150 * sectorsize, 1, file);
-				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, leech);
+				fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
 				fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
 				fix_CDRWIN = 0;
 				if(debug != 0) {
@@ -1261,7 +1261,7 @@ int main(int argc, char **argv)
 					printf("NTSC Patcher is ON\n");
 					printf("----------------------------------------------------------------------------------\n");
 				}
-				fread(outbuf, headersize, 1, leech);
+				fread(outbuf, headersize, 1, bin_file);
 				if(i == 0) GameIdentifier(outbuf);
 				if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 					printf("GameTrainer is ON\n");
@@ -1270,8 +1270,8 @@ int main(int argc, char **argv)
 				if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 				if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 				if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-				if(i + headersize >= dumpsize) {
-					fwrite(outbuf, headersize - (i + headersize - dumpsize), 1, file);
+				if(i + headersize >= bin_size) {
+					fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
 				} else fwrite(outbuf, headersize, 1, file);
 			}
 		}
@@ -1283,7 +1283,7 @@ int main(int argc, char **argv)
 			printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 			printf("----------------------------------------------------------------------------------\n");
 		}
-		fclose(leech);
+		fclose(bin_file);
 		fclose(file);
 
 		printf("A POPS virtual CD-ROM image was saved to :\n");
@@ -1332,21 +1332,21 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if(!(leech = fopen(bin_path, "rb"))) {
+	if(!(bin_file = fopen(bin_path, "rb"))) {
 		printf("Error: Cannot open %s\n\n", bin_path);
 		free(bin_path);
 		return 0;
 	}
 	free(bin_path);
 
-	for(i = 0; i < dumpsize; i += headersize) {
+	for(i = 0; i < bin_size; i += headersize) {
 		if(fix_CDRWIN == 1 && (i + headersize >= daTrack_ptr)) {
 			if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
-			fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, leech);
+			fread(outbuf, headersize - (i + headersize - daTrack_ptr), 1, bin_file);
 			fwrite(outbuf, headersize - (i + headersize - daTrack_ptr), 1, file);
 			char padding[(150 * sectorsize) * 2];
 			fwrite(padding, 150 * sectorsize, 1, file);
-			fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, leech);
+			fread(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, bin_file);
 			fwrite(outbuf, headersize - (headersize - (i + headersize - daTrack_ptr)), 1, file);
 			fix_CDRWIN = 0;
 			if(debug != 0) {
@@ -1360,7 +1360,7 @@ int main(int argc, char **argv)
 				printf("NTSC Patcher is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
-			fread(outbuf, headersize, 1, leech);
+			fread(outbuf, headersize, 1, bin_file);
 			if(i == 0) GameIdentifier(outbuf);
 			if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 				printf("GameTrainer is ON\n");
@@ -1369,8 +1369,8 @@ int main(int argc, char **argv)
 			if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
 			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
 			if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
-			if(i + headersize >= dumpsize) {
-				fwrite(outbuf, headersize - (i + headersize - dumpsize), 1, file);
+			if(i + headersize >= bin_size) {
+				fwrite(outbuf, headersize - (i + headersize - bin_size), 1, file);
 			} else fwrite(outbuf, headersize, 1, file);
 		}
 	}
@@ -1382,7 +1382,7 @@ int main(int argc, char **argv)
 		printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
-	fclose(leech);
+	fclose(bin_file);
 	fclose(file);
 
 	printf("A POPS virtual CD-ROM image was saved to :\n");
