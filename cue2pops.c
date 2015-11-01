@@ -354,7 +354,6 @@ int main(int argc, char **argv)
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
 	int index1_count = 0; // Number of "INDEX 01" occurrences in the cue
 	int wave_count = 0; // Number of "WAVE" occurrences in the cue
-	char answer[3]; // Where the user answer is stored. Used in the CDRWIN fix prompt shit
 
 	unsigned char *headerbuf; // Buffer for the POPS header
 	unsigned char *outbuf; // File I/O cache
@@ -688,27 +687,9 @@ int main(int argc, char **argv)
 	}
 
 	if(pregap_count == 1 && postgap_count == 0) { // Don't offer to fix the dump if more than 1 pregap was found or cue has postgaps
-		if(batch == 0) {
-			for(i = pregap_count; i > 0; i--) {
-				i++;
-				printf("Warning : The input file seems to be a CDRWIN cue sheet...\n");
-				printf("          Would you like to fix the disc image (Yes or No) ? ");
-				scanf("%s", answer);
-				if(!strcmp(answer, "Yes") || !strcmp(answer, "yes") || !strcmp(answer, "y") || !strcmp(answer, "Y")) {
-					fix_CDRWIN = 1;
-					printf("\n");
-					break;
-				}
-				if(!strcmp(answer, "No") || !strcmp(answer, "no") || !strcmp(answer, "n") || !strcmp(answer, "N")) {
-					printf("\n");
-					break;
-				}
-			}
-		} else { // Batch mode is ON, so don't prompt the user...
-			printf("Warning : The input file seems to be a CDRWIN cue sheet\n");
-			printf("          A pregap will be inserted in the output file...\n\n");
-			fix_CDRWIN = 1; //... And turn the CDRWIN  fix on
-		}
+		printf("Warning : The input file seems to be a CDRWIN cue sheet\n");
+		printf("          A pregap will be inserted in the output file...\n\n");
+		fix_CDRWIN = 1; //... And turn the CDRWIN  fix on
 	}
 
 	for(i = 0; i < track_count; i++) {
