@@ -11,12 +11,12 @@
 #include <time.h>
 
 #ifdef DEBUG
-  int debug = 1;
+  const int debug = 1;
 #else
-  int debug = 0;
+  const int debug = 0;
 #endif
 
-int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
+const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
 
 FILE *file, *bin_file; //file is used for opening the input cue and the output file, bin_file is used for opening the BIN that's attached to the cue.
 char *bin_path; // name/path of the BIN that is attached to the cue. Handled by the parser then altered if it doesn't contain the full path.
