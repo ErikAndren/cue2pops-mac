@@ -28,6 +28,8 @@ int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 int sector_count; // Calculated number of sectors
 int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
+int gap_more = 0; // User command status (gap++)
+int gap_less = 0; // User command status (gap--)
 
 int deny_vmode = 0; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
 int fix_game = 0;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
@@ -228,6 +230,24 @@ int GetFileSize(char *file_name)
 	return size;
 }
 
+int EvaluateArg(char *arg)
+{
+	int handled = 1;
+
+	if(!strcmp(arg, "gap++")) {
+		gap_more = 1;
+	} else if(!strcmp(arg, "gap--")) {
+		gap_less = 1;
+	} else if(!strcmp(arg, "vmode")) {
+		vmode = 1;
+	} else if(!strcmp(arg, "trainer")) {
+		trainer = 1;
+	} else {
+		handled = 0;
+	}
+	return handled;
+}
+
 int GetLeadOut(unsigned char *hbuf, int b_size)
 {
 	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
@@ -278,8 +298,11 @@ int main(int argc, char **argv)
 	FILE *cue_file; //cue_file is used for opening the CUE
 	char *cue_buf; // Buffer for the cue sheet
 	char *cue_ptr; // Pointer to the Track 01 type in the cue. Used to set the sector size, the disc type or to reject the cue
-
 	int cue_size; // Size of the cue sheet
+
+	FILE *vcd_file;
+	char *vcd_name;
+
 	int binary_count = 0; // Number of "BINARY" occurrences in the cue
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
 	int index1_count = 0; // Number of "INDEX 01" occurrences in the cue
@@ -296,8 +319,6 @@ int main(int argc, char **argv)
 	int noCDDA = 0; // 2013/04/22 - v1.2 : Is set to 1 if no CDDA track was found in the game dump, used by the NTSC patcher
 
 	int gap_ptr = 0; // Indicates the location of the current INDEX 00 entry in the cue sheet
-	int gap_more = 0; // User command status (gap++)
-	int gap_less = 0; // User command status (gap--)
 
 	int daTrack_ptr = 0; // Indicates the location of the pregap that's between the data track and the first audio track
 
@@ -340,14 +361,42 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	// if(argc == 2), PROGRAM.EXE INPUT.CUE and make the output file name from the input file name
+	///PROGRAM.EXE INPUT.CUE and make the output file name from the input file name
+	if(argc == 2) {
+		char *cue_loc;
+		int handled = 0;
+
+		vcd_name = strdup(argv[1]);
+		if (vcd_name == NULL) {
+			printf("Error: Failed to copy destination string\n");
+			return 0;
+		}
+
+		cue_loc = strstr(vcd_name, ".cue");
+		if (cue_loc != NULL) {
+			//FIXME: Is upper case ending necessary?
+			strcpy(cue_loc, ".VCD");
+			handled = 1;
+		}
+
+		cue_loc = strstr(vcd_name, ".CUE");
+		if (cue_loc != NULL) {
+			strcpy(cue_loc, ".VCD");
+			handled = 1;
+		}
+
+		if (handled == 0) {
+			printf("Error: Input argument was not a cue file\n");
+			return 0;
+		}
+	}
+
 
 	if(argc == 3) { // PROGRAM.EXE INPUT.CUE <CMD_1/OUTPUT>
-		if(!strcmp(argv[2], "gap++")) 	gap_more = 1;
-		if(!strcmp(argv[2], "gap--")) 	gap_less = 1;
-		if(!strcmp(argv[2], "vmode")) 	vmode = 1;
-		if(!strcmp(argv[2], "trainer")) trainer = 1;
-		// else, argv[2] is the output file name
+		if (!EvaluateArg(argv[2])) {
+			// else,argv[2] is the output file name
+			strcpy(vcd_name, argv[2]);
+		}
 	}
 
 	if(argc == 4) { // PROGRAM.EXE INPUT.CUE <CMD_1> <CMD_2/OUTPUT>
@@ -1054,8 +1103,6 @@ int main(int argc, char **argv)
 
 	/* 2 user arguments : no command, output file is user argument 2 */
 	if(gap_more == 0 && gap_less == 0 && vmode == 0 && trainer == 0 && argc == 3) {
-		FILE *vcd_file;
-
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(vcd_file = fopen(argv[2], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[2]);
@@ -1140,8 +1187,6 @@ int main(int argc, char **argv)
 
 	/* 3 user arguments : 1 command, the command is user argument 2, output file is user argument 3 */
 	if(((gap_more == 0 && vmode == 0 && trainer == 1) || (gap_less == 0 && vmode == 0 && trainer == 1) || (gap_more == 1 && vmode == 0 && trainer == 0) || (gap_less == 1 && vmode == 0 && trainer == 0) || (gap_more == 0 && gap_less == 0 && vmode == 1 && trainer == 0)) && argc == 4) {
-		FILE *vcd_file;
-
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(vcd_file = fopen(argv[3], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[3]);
@@ -1227,8 +1272,6 @@ int main(int argc, char **argv)
 
 	/* 4 user arguments : 2 commands, commands are user arguments 2 and 3, output file is user argument 4 */
 	if(((gap_more == 1 && vmode == 0 && trainer == 1) || (gap_less == 1 && vmode == 0 && trainer == 1) || (gap_more == 1 && vmode == 1 && trainer == 0) || (gap_less == 1 && vmode == 1 && trainer == 0) || (gap_more == 0 && gap_less == 0 && vmode == 1 && trainer == 1)) && argc == 5) {
-		FILE *vcd_file;
-
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(vcd_file = fopen(argv[4], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[4]);
@@ -1314,8 +1357,6 @@ int main(int argc, char **argv)
 
 	/* 5 user arguments : 3 commands; Commands are user arguments 2, 3 and 4; Output file is user argument 5 */
 	if(argc == 6) {
-		FILE *vcd_file;
-
 		printf("Saving the virtual CD-ROM image. Please wait...\n");
 		if(!(vcd_file = fopen(argv[5], "wb"))) {
 			printf("Error : Cannot write to %s\n\n", argv[5]);
@@ -1398,8 +1439,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	FILE *vcd_file;
-
 	/* Default, if none of the above cases returned or argc == 2, output file is the input file name plus the extension ".VCD" */
 	i = strlen(argv[1]);
 	for(; i > 0; i--) { // Search the extension ".cue" and ".CUE" in the input file name
@@ -1430,10 +1469,10 @@ int main(int argc, char **argv)
 		free(outbuf);
 		return 0;
 	}
+
 	fwrite(headerbuf, 1, HEADERSIZE, vcd_file);
 	fclose(vcd_file);
 	free(headerbuf);
-
 
 	if(!(vcd_file = fopen(argv[1], "ab+"))) {
 		printf("Error : Cannot write to %s\n\n", argv[1]);
