@@ -1055,7 +1055,14 @@ int main(int argc, char **argv)
 
 	for(i = 0; i < bin_size; i += HEADERSIZE) {
 		if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
-			char padding[(150 * SECTORSIZE) * 2];
+			char *padding;
+
+			padding = malloc((150 * SECTORSIZE) * 2);
+			if (padding == NULL) {
+				printf("Failed to allocate padding.\n");
+				free(outbuf);
+				return 0;
+			}
 
 			if(debug != 0) {
 				printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
