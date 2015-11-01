@@ -406,6 +406,18 @@ int main(int argc, char **argv)
 				return 0;
 			}
 		} else {
+			//argv[2] was command, convert argv[1] to .vcd ending
+			vcd_name = strdup(argv[1]);
+			if (vcd_name == NULL) {
+				printf("Error: Failed to copy destination string\n");
+				return 0;
+			}
+
+			if (ConvertFileEndingToVcd(vcd_name)) {
+				printf("Error: Failed to change file ending to .VCD\n");
+				return 0;
+			}
+
 
 		}
 	}
