@@ -244,7 +244,6 @@ int GetLeadOut(unsigned char *hbuf)
 	int leadoutS; // Calculated Lead-Out __:SS:__
 	int leadoutF; // Calculated Lead-Out __:__:FF
 
-
 	sector_count = (bin_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the bin_size to sector count
 	leadoutM = sector_count / 4500;
 	leadoutS = (sector_count - leadoutM * 4500) / 75;
@@ -263,9 +262,10 @@ int GetLeadOut(unsigned char *hbuf)
 	sprintf(&LeadOut[2], "%02d", leadoutS);
 	sprintf(&LeadOut[4], "%02d", leadoutF);
 
-	hbuf[27] = ((LeadOut[0] - 48) * 16) + (LeadOut[1] - 48);
-	hbuf[28] = ((LeadOut[2] - 48) * 16) + (LeadOut[3] - 48);
-	hbuf[29] = ((LeadOut[4] - 48) * 16) + (LeadOut[5] - 48);
+	/* Convert from ASCII symbol to number */
+	hbuf[27] = ((LeadOut[0] - '0') * 16) + (LeadOut[1] - '0');
+	hbuf[28] = ((LeadOut[2] - '0') * 16) + (LeadOut[3] - '0');
+	hbuf[29] = ((LeadOut[4] - '0') * 16) + (LeadOut[5] - '0');
 	if(debug != 0) {
 		printf("Formatted Lead-Out MSF  = %02X:%02X:%02X\n\n", hbuf[27], hbuf[28], hbuf[29]);
 	}
