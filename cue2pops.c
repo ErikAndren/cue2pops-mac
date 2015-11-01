@@ -40,7 +40,6 @@ int GameFixed = 0;
 
 extern int errno;
 
-
 void GameIdentifier(unsigned char *inbuf)
 {
 	int ptr;
@@ -111,7 +110,6 @@ void GameIdentifier(unsigned char *inbuf)
 	}
 }
 
-
 void GameFixer(unsigned char *inbuf)
 {
 	int ptr;
@@ -131,7 +129,6 @@ void GameFixer(unsigned char *inbuf)
 		}
 	}
 }
-
 
 void GameTrainer(unsigned char *inbuf)
 {
@@ -169,7 +166,6 @@ void GameTrainer(unsigned char *inbuf)
 		}
 	}
 }
-
 
 void NTSCpatcher(unsigned char *inbuf, int tracker)
 {
@@ -233,9 +229,6 @@ int GetFileSize(char *file_name)
 	return size;
 }
 
-
-
-
 int GetLeadOut(unsigned char *hbuf)
 {
 	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
@@ -274,7 +267,6 @@ int GetLeadOut(unsigned char *hbuf)
 
 	return 0;
 }
-
 
 int main(int argc, char **argv)
 {
