@@ -510,7 +510,7 @@ int main(int argc, char **argv)
 	}
 
 	for(i = strlen(cue_ptr); i > 0; i--) { // Does the cue have the full BINARY path ?
-	  if((cue_ptr[i] == '\\') || (cue_ptr[i] == '/')) { // YES !
+		if((cue_ptr[i] == '\\') || (cue_ptr[i] == '/')) { // YES !
 			strcpy(bin_path, cue_ptr);
 			break;
 		}
