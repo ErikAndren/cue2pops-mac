@@ -395,7 +395,11 @@ int main(int argc, char **argv)
 	if(argc == 3) { // PROGRAM.EXE INPUT.CUE <CMD_1/OUTPUT>
 		if (!EvaluateArg(argv[2])) {
 			// else,argv[2] is the output file name
-			strcpy(vcd_name, argv[2]);
+			vcd_name = strdup(argv[2]);
+			if (vcd_name == NULL) {
+				printf("Error: Failed to copy destination string\n");
+				return 0;
+			}
 		}
 	}
 
