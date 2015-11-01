@@ -32,8 +32,8 @@ int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
 
 int deny_vmode = 0; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
 int fix_game = 0;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
-int GameHasCheats = 0;	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... .
 
+int GameHasCheats = 0;	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... .
 int GameTitle = 0;
 int GameTrained = 0;
 int GameFixed = 0;
