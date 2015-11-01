@@ -528,10 +528,13 @@ int main(int argc, char **argv)
 			strcpy(bin_path, cue_name);
 			/* Why should I use strrchr when I can do a n00ber thing ;D */
 			for(i = strlen(bin_path); i > 0; i--) {
-			  if((bin_path[i] == '\\') || (bin_path[i] == '/'))
-			     break;
+				if((bin_path[i] == '\\') || (bin_path[i] == '/')) {
+					break;
+				}
 			}
-			for(i = i+1; (unsigned long) i < strlen(bin_path); i++) bin_path[i] = 0x00; // How kewl is dat ?
+			for(i = i+1; (unsigned long) i < strlen(bin_path); i++) {
+				bin_path[i] = 0x00; // How kewl is dat ?
+			}
 			/* Me no liek strncat */
 			i = strlen(bin_path);
 			strcpy(bin_path + i, cue_ptr);
@@ -621,12 +624,16 @@ int main(int argc, char **argv)
 	*******************************************************************************************************/
 
 	for(i = 0; i < cue_size; i++) { // Since I've nulled some chars in the BIN handler, here I prelocate the TRACK 01 string so the track type substring can be found
-		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') break;
+		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') {
+			break;
+		}
 	}
 
 	cue_ptr = strstr(cue_buf + i, "TRACK 01 MODE2/2352"); // Ought be
 	if(cue_ptr != NULL) {
-		if(debug != 0) printf("Disc Type Check : Is MODE2/2352\n");
+		if(debug != 0) {
+			printf("Disc Type Check : Is MODE2/2352\n");
+		}
 	} else { // 2013/05/16, v2.0 : Not MODE2/2352, tell the user and terminate
 		printf("Error: Looks like your game dump is not MODE2/2352, or the cue is invalid.\n\n");
 		free(cue_buf);
@@ -989,10 +996,7 @@ int main(int argc, char **argv)
 				}
 
 				/* 2013/05/16 - v2.0, End of the gap-- code */
-
-
 				gap_ptr = 0; // Reset the integer that points to the last NULLed INDEX 00 entry of the cue sheet
-
 				break;
 			}
 		}
@@ -1012,7 +1016,9 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if(noCDDA == 1) daTrack_ptr = bin_size; // 2013/04/22 - v1.2 : Set it now. If no CDDA track was found in the game dump, the NTSC patcher will proceed in scanning the whole BIN.
+	if(noCDDA == 1) {
+		daTrack_ptr = bin_size; // 2013/04/22 - v1.2 : Set it now. If no CDDA track was found in the game dump, the NTSC patcher will proceed in scanning the whole BIN.
+	}
 	if(noCDDA == 1 && debug != 0) {			// 2013/05/16 - v2.0 : dbg please
 		printf("Current daTrack_ptr     = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
 		printf("daTrack_ptr LBA         = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
@@ -1068,10 +1074,13 @@ int main(int argc, char **argv)
 
 	for(i = 0; i < bin_size; i += HEADERSIZE) {
 		if(fix_CDRWIN == 1 && (i + HEADERSIZE >= daTrack_ptr)) {
-			if(debug != 0) printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
+			char padding[(150 * SECTORSIZE) * 2];
+
+			if(debug != 0) {
+				printf("Padding the CDRWIN dump inside of the virtual CD-ROM image...");
+			}
 			fread(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, bin_file);
 			fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - daTrack_ptr), 1, vcd_file);
-			char padding[(150 * SECTORSIZE) * 2];
 			fwrite(padding, 150 * SECTORSIZE, 1, vcd_file);
 			fread(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, bin_file);
 			fwrite(outbuf, HEADERSIZE - (HEADERSIZE - (i + HEADERSIZE - daTrack_ptr)), 1, vcd_file);
@@ -1087,14 +1096,22 @@ int main(int argc, char **argv)
 				printf("----------------------------------------------------------------------------------\n");
 			}
 			fread(outbuf, HEADERSIZE, 1, bin_file);
-			if(i == 0) GameIdentifier(outbuf);
+			if(i == 0) {
+				GameIdentifier(outbuf);
+			}
 			if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
 				printf("GameTrainer is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
-			if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) GameTrainer(outbuf);
-			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) GameFixer(outbuf);
-			if(vmode == 1 && i <= daTrack_ptr) NTSCpatcher(outbuf, i);
+			if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) {
+				GameTrainer(outbuf);
+			}
+			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) {
+				GameFixer(outbuf);
+			}
+			if(vmode == 1 && i <= daTrack_ptr) {
+				NTSCpatcher(outbuf, i);
+			}
 			if(i + HEADERSIZE >= bin_size) {
 				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
 			} else {
