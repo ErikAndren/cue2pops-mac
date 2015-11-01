@@ -30,9 +30,6 @@ int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 int bin_size; // BIN (disc image) size
 int sector_count; // Calculated number of sectors
-int leadoutM; // Calculated Lead-Out MM:__:__
-int leadoutS; // Calculated Lead-Out __:SS:__
-int leadoutF; // Calculated Lead-Out __:__:FF
 int track_count = 0;; // Number of "TRACK " occurrences in the cue
 int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
@@ -223,6 +220,9 @@ int GetLeadOut(unsigned char *hbuf)
 	
 	// Formatted Lead-Out MM:SS:FF
 	char LeadOut[7];
+	int leadoutM; // Calculated Lead-Out MM:__:__
+	int leadoutS; // Calculated Lead-Out __:SS:__
+	int leadoutF; // Calculated Lead-Out __:__:FF
 	
 	if(!(bin = fopen(bin_path, "rb"))) { // Open the BINARY that is attached to the cue
 		printf("Error: Cannot open %s\n\n", bin_path);
