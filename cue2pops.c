@@ -286,7 +286,6 @@ int main(int argc, char **argv)
 
 	char *cue_buf; // Buffer for the cue sheet
 	int cue_size; // Size of the cue sheet
-	int cue_ptr;  // Indicates the location of the current INDEX 01 entry in the cue sheet
 	int binary_count = 0; // Number of "BINARY" occurrences in the cue
 	int index0_count = 0; // Number of "INDEX 00" occurrences in the cue
 	int index1_count = 0; // Number of "INDEX 01" occurrences in the cue
@@ -727,59 +726,60 @@ int main(int argc, char **argv)
 
 	for(i = 0; i < track_count; i++) {
 		header_ptr += 10; // Put the pointer at the start of the correct track entry
+		int cue_index_ptr;  // Indicates the location of the current INDEX 01 entry in the cue sheet
 
-		for(cue_ptr = 0; cue_ptr < cue_size; cue_ptr++) {
-			if(cue_buf[cue_ptr] == 'T' && cue_buf[cue_ptr+1] == 'R' && cue_buf[cue_ptr+2] == 'A' && cue_buf[cue_ptr+3] == 'C' && cue_buf[cue_ptr+4] == 'K' && cue_buf[cue_ptr+5] == ' ') {
-				cue_buf[cue_ptr] = '\0';
-				cue_buf[cue_ptr + 1] = '\0';
-				cue_buf[cue_ptr + 2] = '\0';
-				cue_buf[cue_ptr + 3] = '\0';
-				cue_buf[cue_ptr + 4] = '\0';
-				cue_buf[cue_ptr + 5] = '\0';
+		for(cue_index_ptr = 0; cue_index_ptr < cue_size; cue_index_ptr++) {
+			if(cue_buf[cue_index_ptr] == 'T' && cue_buf[cue_index_ptr+1] == 'R' && cue_buf[cue_index_ptr+2] == 'A' && cue_buf[cue_index_ptr+3] == 'C' && cue_buf[cue_index_ptr+4] == 'K' && cue_buf[cue_index_ptr+5] == ' ') {
+				cue_buf[cue_index_ptr] = '\0';
+				cue_buf[cue_index_ptr + 1] = '\0';
+				cue_buf[cue_index_ptr + 2] = '\0';
+				cue_buf[cue_index_ptr + 3] = '\0';
+				cue_buf[cue_index_ptr + 4] = '\0';
+				cue_buf[cue_index_ptr + 5] = '\0';
 
 				/* Track Type : 41h = DATA Track / 01h CDDA Track */
-				if(cue_buf[cue_ptr + 13] == '2' || cue_buf[cue_ptr + 13] == '1' || cue_buf[cue_ptr + 13] != 'O') {
+				if(cue_buf[cue_index_ptr + 13] == '2' || cue_buf[cue_index_ptr + 13] == '1' || cue_buf[cue_index_ptr + 13] != 'O') {
 					headerbuf[10] = 0x41; 			// Assume DATA Track
 					headerbuf[20] = 0x41; 			// 2013/05/16, v2.0 : Assume DATA Track
 					headerbuf[header_ptr] = 0x41; 	// Assume DATA Track
 				}
-				if(cue_buf[cue_ptr + 13] == 'O') {
+				if(cue_buf[cue_index_ptr + 13] == 'O') {
 					headerbuf[10] = 0x01; 			// Assume AUDIO Track
 					headerbuf[20] = 0x01; 			// 2013/05/16, v2.0 : Assume AUDIO Track
 					headerbuf[header_ptr] = 0x01; 	// Assume AUDIO Track
 				}
 
-				headerbuf[header_ptr + 2] = ((cue_buf[cue_ptr + 6] - 48) * 16) + (cue_buf[cue_ptr + 7] - 48);	// Track Number
-				headerbuf[17] = ((cue_buf[cue_ptr + 6] - 48) * 16) + (cue_buf[cue_ptr + 7] - 48);				// Number of track entries
+				headerbuf[header_ptr + 2] = ((cue_buf[cue_index_ptr + 6] - 48) * 16) + (cue_buf[cue_index_ptr + 7] - 48);	// Track Number
+				headerbuf[17] = ((cue_buf[cue_index_ptr + 6] - 48) * 16) + (cue_buf[cue_index_ptr + 7] - 48);				// Number of track entries
 				break;
 			}
 		}
 
-		for(cue_ptr = 0; cue_ptr < cue_size; cue_ptr++) {
-			if(cue_buf[cue_ptr] == 'I' && cue_buf[cue_ptr+1] == 'N' && cue_buf[cue_ptr+2] == 'D' && cue_buf[cue_ptr+3] == 'E' && cue_buf[cue_ptr+4] == 'X' && cue_buf[cue_ptr+5] == ' ' && cue_buf[cue_ptr+6] == '0' && cue_buf[cue_ptr+7] == '0') {
-				gap_ptr = cue_ptr; // Memoryze the location of the INDEX 00 entry
-				cue_buf[cue_ptr] = '\0';
-				cue_buf[cue_ptr + 1] = '\0';
-				cue_buf[cue_ptr + 2] = '\0';
-				cue_buf[cue_ptr + 3] = '\0';
-				cue_buf[cue_ptr + 4] = '\0';
-				cue_buf[cue_ptr + 5] = '\0';
-				cue_buf[cue_ptr + 6] = '\0';
-				cue_buf[cue_ptr + 7] = '\0';
+		for(cue_index_ptr = 0; cue_index_ptr < cue_size; cue_index_ptr++) {
+			if(cue_buf[cue_index_ptr] == 'I' && cue_buf[cue_index_ptr+1] == 'N' && cue_buf[cue_index_ptr+2] == 'D' && cue_buf[cue_index_ptr+3] == 'E' && cue_buf[cue_index_ptr+4] == 'X' && cue_buf[cue_index_ptr+5] == ' ' && cue_buf[cue_index_ptr+6] == '0' && cue_buf[cue_index_ptr+7] == '0') {
+				gap_ptr = cue_index_ptr; // Memoryze the location of the INDEX 00 entry
+				cue_buf[cue_index_ptr] = '\0';
+				cue_buf[cue_index_ptr + 1] = '\0';
+				cue_buf[cue_index_ptr + 2] = '\0';
+				cue_buf[cue_index_ptr + 3] = '\0';
+				cue_buf[cue_index_ptr + 4] = '\0';
+				cue_buf[cue_index_ptr + 5] = '\0';
+				cue_buf[cue_index_ptr + 6] = '\0';
+				cue_buf[cue_index_ptr + 7] = '\0';
 			}
-			if(cue_buf[cue_ptr] == 'I' && cue_buf[cue_ptr+1] == 'N' && cue_buf[cue_ptr+2] == 'D' && cue_buf[cue_ptr+3] == 'E' && cue_buf[cue_ptr+4] == 'X' && cue_buf[cue_ptr+5] == ' ' && cue_buf[cue_ptr+6] == '0' && cue_buf[cue_ptr+7] == '1') {
-				cue_buf[cue_ptr] = '\0';
-				cue_buf[cue_ptr + 1] = '\0';
-				cue_buf[cue_ptr + 2] = '\0';
-				cue_buf[cue_ptr + 3] = '\0';
-				cue_buf[cue_ptr + 4] = '\0';
-				cue_buf[cue_ptr + 5] = '\0';
-				cue_buf[cue_ptr + 6] = '\0';
-				cue_buf[cue_ptr + 7] = '\0';
+			if(cue_buf[cue_index_ptr] == 'I' && cue_buf[cue_index_ptr+1] == 'N' && cue_buf[cue_index_ptr+2] == 'D' && cue_buf[cue_index_ptr+3] == 'E' && cue_buf[cue_index_ptr+4] == 'X' && cue_buf[cue_index_ptr+5] == ' ' && cue_buf[cue_index_ptr+6] == '0' && cue_buf[cue_index_ptr+7] == '1') {
+				cue_buf[cue_index_ptr] = '\0';
+				cue_buf[cue_index_ptr + 1] = '\0';
+				cue_buf[cue_index_ptr + 2] = '\0';
+				cue_buf[cue_index_ptr + 3] = '\0';
+				cue_buf[cue_index_ptr + 4] = '\0';
+				cue_buf[cue_index_ptr + 5] = '\0';
+				cue_buf[cue_index_ptr + 6] = '\0';
+				cue_buf[cue_index_ptr + 7] = '\0';
 
-				m = ((cue_buf[cue_ptr + 9] - 48) * 16) + (cue_buf[cue_ptr + 10] - 48);
-				s = ((cue_buf[cue_ptr + 12] - 48) * 16) + (cue_buf[cue_ptr + 13] - 48);
-				f = ((cue_buf[cue_ptr + 15] - 48) * 16) + (cue_buf[cue_ptr + 16] - 48);
+				m = ((cue_buf[cue_index_ptr + 9] - 48) * 16) + (cue_buf[cue_index_ptr + 10] - 48);
+				s = ((cue_buf[cue_index_ptr + 12] - 48) * 16) + (cue_buf[cue_index_ptr + 13] - 48);
+				f = ((cue_buf[cue_index_ptr + 15] - 48) * 16) + (cue_buf[cue_index_ptr + 16] - 48);
 
 				if(daTrack_ptr == 0 && headerbuf[10] == 0x01 && gap_ptr != 0) { // Targets the first AUDIO track INDEX 00 MSF
 					daTrack_ptr = (((((cue_buf[gap_ptr + 9] - 48) * 10) + (cue_buf[gap_ptr + 10] - 48)) * 4500) + ((((cue_buf[gap_ptr + 12] - 48) * 10) + (cue_buf[gap_ptr + 13] - 48)) * 75) + (((cue_buf[gap_ptr + 15] - 48) * 10) + (cue_buf[gap_ptr + 16] - 48))) * SECTORSIZE;
@@ -789,7 +789,7 @@ int main(int argc, char **argv)
 						printf("daTrack_ptr LBA     = %d (%Xh)\n\n", daTrack_ptr / SECTORSIZE, daTrack_ptr / SECTORSIZE);
 					}
 				} else if(daTrack_ptr == 0 && headerbuf[10] == 0x01 && gap_ptr == 0) { // Targets the first AUDIO track INDEX 01 MSF
-					daTrack_ptr = (((((cue_buf[cue_ptr + 9] - 48) * 10) + (cue_buf[cue_ptr + 10] - 48)) * 4500) + ((((cue_buf[cue_ptr + 12] - 48) * 10) + (cue_buf[cue_ptr + 13] - 48)) * 75) + (((cue_buf[cue_ptr + 15] - 48) * 10) + (cue_buf[cue_ptr + 16] - 48))) * SECTORSIZE;
+					daTrack_ptr = (((((cue_buf[cue_index_ptr + 9] - 48) * 10) + (cue_buf[cue_index_ptr + 10] - 48)) * 4500) + ((((cue_buf[cue_index_ptr + 12] - 48) * 10) + (cue_buf[cue_index_ptr + 13] - 48)) * 75) + (((cue_buf[cue_index_ptr + 15] - 48) * 10) + (cue_buf[cue_index_ptr + 16] - 48))) * SECTORSIZE;
 					if(debug != 0) {
 						printf("daTrack_ptr hit on TRACK %02d AUDIO INDEX 01 MSF minus 2 seconds !\n", i + 1);
 						printf("Current daTrack_ptr = %d (%Xh)\n", daTrack_ptr, daTrack_ptr);
