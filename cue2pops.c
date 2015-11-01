@@ -266,7 +266,7 @@ int GetLeadOut(void)
 		printf("Formatted Lead-Out MSF  = %02X:%02X:%02X\n\n", LeadOut[0], LeadOut[1], LeadOut[2]);
 	}
 
-	return 1;
+	return 0;
 }
 
 
@@ -973,7 +973,7 @@ int main(int argc, char **argv)
 	}
 	free(cuebuf);
 
-	if(GetLeadOut() != 1) {
+	if(GetLeadOut() != 0) {
 		free(bin_path);
 		free(headerbuf);
 		return 0;
