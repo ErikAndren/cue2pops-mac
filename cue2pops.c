@@ -166,38 +166,38 @@ void game_trainer(unsigned char *inbuf)
 
 void NTSC_patcher(unsigned char *inbuf, int tracker)
 {
-	int ptr;
+	int i;
 
-	for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
-		if((inbuf[ptr] == 0x13 && inbuf[ptr+1] == 0x00 && (inbuf[ptr+2] == 0x90 || inbuf[ptr+2] == 0x91) && inbuf[ptr+3] == 0x24) && (inbuf[ptr+4] == 0x10 && inbuf[ptr+5] == 0x00 && (inbuf[ptr+6] == 0x90 || inbuf[ptr+6] == 0x91) && inbuf[ptr+7] == 0x24)) {
+	for(i = 0; i < HEADERSIZE; i += 4) {
+		if((inbuf[i] == 0x13 && inbuf[i+1] == 0x00 && (inbuf[i+2] == 0x90 || inbuf[i+2] == 0x91) && inbuf[i+3] == 0x24) && (inbuf[i+4] == 0x10 && inbuf[i+5] == 0x00 && (inbuf[i+6] == 0x90 || inbuf[i+6] == 0x91) && inbuf[i+7] == 0x24)) {
 			// ?? 00 90 24 ?? 00 90 24 || ?? 00 91 24 ?? 00 91 24 || ?? 00 91 24 ?? 00 90 24 || ?? 00 90 24 ?? 00 91 24
-			printf("Y-Pos pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
-			inbuf[ptr] = 0xF8;		// 2013/05/16, v2.0 : Also apply the fix here, in case NTSC_patcher cannot find/patch the video mode
-			inbuf[ptr+1] = 0xFF;	// 2013/05/16, v2.0 : //
-			inbuf[ptr+4] = 0xF8;
-			inbuf[ptr+5] = 0xFF;
+			printf("Y-Pos pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + i, (tracker + i) / SECTORSIZE, HEADERSIZE + tracker + i);
+			inbuf[i] = 0xF8;		// 2013/05/16, v2.0 : Also apply the fix here, in case NTSC_patcher cannot find/patch the video mode
+			inbuf[i+1] = 0xFF;	// 2013/05/16, v2.0 : //
+			inbuf[i+4] = 0xF8;
+			inbuf[i+5] = 0xFF;
 			printf("----------------------------------------------------------------------------------\n");
-		} else if(inbuf[ptr+2] != 0xBD && inbuf[ptr+3] != 0x27 && inbuf[ptr+4] == 0x08 && inbuf[ptr+5] == 0x00 && inbuf[ptr+6] == 0xE0 && inbuf[ptr+7] == 0x03 && inbuf[ptr+14] == 0x02 && inbuf[ptr+15] == 0x3C && inbuf[ptr+18] == 0x42 && inbuf[ptr+19] == 0x8C && inbuf[ptr+20] == 0x08 && inbuf[ptr+21] == 0x00 && inbuf[ptr+22] == 0xE0 && inbuf[ptr+23] == 0x03 && inbuf[ptr+24] == 0x00 && inbuf[ptr+25] == 0x00 && inbuf[ptr+26] == 0x00 && inbuf[ptr+27] == 0x00 && ((inbuf[ptr+2] == 0x24 && inbuf[ptr+3] == 0xAC) || (inbuf[ptr+6] == 0x24 && inbuf[ptr+7] == 0xAC) || (inbuf[ptr+10] == 0x24 && inbuf[ptr+11] == 0xAC))) {
+		} else if(inbuf[i+2] != 0xBD && inbuf[i+3] != 0x27 && inbuf[i+4] == 0x08 && inbuf[i+5] == 0x00 && inbuf[i+6] == 0xE0 && inbuf[i+7] == 0x03 && inbuf[i+14] == 0x02 && inbuf[i+15] == 0x3C && inbuf[i+18] == 0x42 && inbuf[i+19] == 0x8C && inbuf[i+20] == 0x08 && inbuf[i+21] == 0x00 && inbuf[i+22] == 0xE0 && inbuf[i+23] == 0x03 && inbuf[i+24] == 0x00 && inbuf[i+25] == 0x00 && inbuf[i+26] == 0x00 && inbuf[i+27] == 0x00 && ((inbuf[i+2] == 0x24 && inbuf[i+3] == 0xAC) || (inbuf[i+6] == 0x24 && inbuf[i+7] == 0xAC) || (inbuf[i+10] == 0x24 && inbuf[i+11] == 0xAC))) {
 			// ?? ?? ?? ?? 08 00 E0 03 ?? ?? ?? ?? ?? ?? 02 3C ?? ?? 42 8C 08 00 E0 03 00 00 00 00
 			if(deny_vmode != 0) {
-				printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
+				printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + i, (tracker + i) / SECTORSIZE, HEADERSIZE + tracker + i);
 			}
 			if(deny_vmode == 0) {
-				printf("VMODE pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
-				inbuf[ptr+12] = 0x00;
-				inbuf[ptr+13] = 0x00;
-				inbuf[ptr+14] = 0x00;
-				inbuf[ptr+15] = 0x00;
-				inbuf[ptr+16] = 0x00;
-				inbuf[ptr+17] = 0x00;
-				inbuf[ptr+18] = 0x02;
-				inbuf[ptr+19] = 0x24;
-				if(inbuf[ptr+2] == 0x24 && inbuf[ptr+3] == 0xAC) {
-					inbuf[ptr+2] = 0x20;
-				} else if(inbuf[ptr+6] == 0x24 && inbuf[ptr+7] == 0xAC) {
-					inbuf[ptr+6] = 0x20;
-				} else if(inbuf[ptr+10] == 0x24 && inbuf[ptr+11] == 0xAC) {
-					inbuf[ptr+10] = 0x20;
+				printf("VMODE pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + i, (tracker + i) / SECTORSIZE, HEADERSIZE + tracker + i);
+				inbuf[i+12] = 0x00;
+				inbuf[i+13] = 0x00;
+				inbuf[i+14] = 0x00;
+				inbuf[i+15] = 0x00;
+				inbuf[i+16] = 0x00;
+				inbuf[i+17] = 0x00;
+				inbuf[i+18] = 0x02;
+				inbuf[i+19] = 0x24;
+				if(inbuf[i+2] == 0x24 && inbuf[i+3] == 0xAC) {
+					inbuf[i+2] = 0x20;
+				} else if(inbuf[i+6] == 0x24 && inbuf[i+7] == 0xAC) {
+					inbuf[i+6] = 0x20;
+				} else if(inbuf[i+10] == 0x24 && inbuf[i+11] == 0xAC) {
+					inbuf[i+10] = 0x20;
 				}
 			}
 			printf("----------------------------------------------------------------------------------\n");
