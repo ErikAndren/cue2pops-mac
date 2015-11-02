@@ -20,7 +20,6 @@ const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size f
 
 int vmode = 0; // User command status (vmode)
 int trainer = 0; // User command status (trainer)
-int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 
 int sector_count; // Calculated number of sectors
 int pregap_count = 0; // Number of "PREGAP" occurrences in the cue
@@ -366,6 +365,7 @@ int main(int argc, char **argv)
 	int daTrack_ptr = 0; // Indicates the location of the pregap that's between the data track and the first audio track
 
 	int track_count = 0; // Number of "TRACK " occurrences in the cue
+	int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 
 	printf("\nBIN/CUE to IMAGE0.VCD conversion tool v2.0\n");
 	printf("Last modified: %s\n\n", __DATE__);
