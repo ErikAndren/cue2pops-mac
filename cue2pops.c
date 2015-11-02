@@ -291,7 +291,7 @@ int convert_file_ending_to_vcd(const char *file_name)
 	return -2;
 }
 
-int GetLeadOut(unsigned char *hbuf, int b_size)
+int get_lead_out(unsigned char *hbuf, int b_size)
 {
 	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 
@@ -988,7 +988,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if(GetLeadOut(headerbuf, bin_size) != 0) {
+	if(get_lead_out(headerbuf, bin_size) != 0) {
 		free(bin_path);
 		free(headerbuf);
 		return 0;
