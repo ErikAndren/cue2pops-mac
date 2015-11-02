@@ -644,19 +644,42 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	//FIXME: Migrate to function
 	for(i = 0; i < cue_size; i++) {
 		/* Clean out some crap in the cue_buf */
-		if(cue_buf[i] == ':') cue_buf[i] = '\0';
-		if(cue_buf[i] == 0x0D) cue_buf[i] = '\0';
-		if(cue_buf[i] == 0x0A) cue_buf[i] = '\0';
+		if(cue_buf[i] == ':') {
+			cue_buf[i] = '\0';
+		}
+		//Carriage return
+		if(cue_buf[i] == 0x0D) {
+			cue_buf[i] = '\0';
+		}
+		//Line feed
+		if(cue_buf[i] == 0x0A) {
+			cue_buf[i] = '\0';
+		}
 		/* Count stuff in the cue */
-		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ') track_count++;
-		if(cue_buf[i] == 'I' && cue_buf[i+1] == 'N' && cue_buf[i+2] == 'D' && cue_buf[i+3] == 'E' && cue_buf[i+4] == 'X' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') index1_count++;
-		if(cue_buf[i] == 'I' && cue_buf[i+1] == 'N' && cue_buf[i+2] == 'D' && cue_buf[i+3] == 'E' && cue_buf[i+4] == 'X' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '0') index0_count++;
-		if(cue_buf[i] == 'B' && cue_buf[i+1] == 'I' && cue_buf[i+2] == 'N' && cue_buf[i+3] == 'A' && cue_buf[i+4] == 'R' && cue_buf[i+5] == 'Y') binary_count++;
-		if(cue_buf[i] == 'W' && cue_buf[i+1] == 'A' && cue_buf[i+2] == 'V' && cue_buf[i+3] == 'E') wave_count++;
-		if(cue_buf[i] == 'P' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'E' && cue_buf[i+3] == 'G' && cue_buf[i+4] == 'A' && cue_buf[i+5] == 'P') pregap_count++;
-		if(cue_buf[i] == 'P' && cue_buf[i+1] == 'O' && cue_buf[i+2] == 'S' && cue_buf[i+3] == 'T' && cue_buf[i+4] == 'G' && cue_buf[i+5] == 'A' && cue_buf[i+6] == 'P') postgap_count++;
+		if(cue_buf[i] == 'T' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'A' && cue_buf[i+3] == 'C' && cue_buf[i+4] == 'K' && cue_buf[i+5] == ' ') {
+			track_count++;
+		}
+		if(cue_buf[i] == 'I' && cue_buf[i+1] == 'N' && cue_buf[i+2] == 'D' && cue_buf[i+3] == 'E' && cue_buf[i+4] == 'X' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '1') {
+			index1_count++;
+		}
+		if(cue_buf[i] == 'I' && cue_buf[i+1] == 'N' && cue_buf[i+2] == 'D' && cue_buf[i+3] == 'E' && cue_buf[i+4] == 'X' && cue_buf[i+5] == ' ' && cue_buf[i+6] == '0' && cue_buf[i+7] == '0') {
+			index0_count++;
+		}
+		if(cue_buf[i] == 'B' && cue_buf[i+1] == 'I' && cue_buf[i+2] == 'N' && cue_buf[i+3] == 'A' && cue_buf[i+4] == 'R' && cue_buf[i+5] == 'Y') {
+			binary_count++;
+		}
+		if(cue_buf[i] == 'W' && cue_buf[i+1] == 'A' && cue_buf[i+2] == 'V' && cue_buf[i+3] == 'E') {
+			wave_count++;
+		}
+		if(cue_buf[i] == 'P' && cue_buf[i+1] == 'R' && cue_buf[i+2] == 'E' && cue_buf[i+3] == 'G' && cue_buf[i+4] == 'A' && cue_buf[i+5] == 'P') {
+			pregap_count++;
+		}
+		if(cue_buf[i] == 'P' && cue_buf[i+1] == 'O' && cue_buf[i+2] == 'S' && cue_buf[i+3] == 'T' && cue_buf[i+4] == 'G' && cue_buf[i+5] == 'A' && cue_buf[i+6] == 'P') {
+			postgap_count++;
+		}
 	}
 
 	if(debug != 0) {
