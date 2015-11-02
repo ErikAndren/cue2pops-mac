@@ -38,13 +38,13 @@ int GameFixed = 0;
 
 extern int errno;
 
-void GameIdentifier(unsigned char *inbuf)
+void game_identifier(unsigned char *inbuf)
 {
 	int ptr;
 
 	if(debug != 0) {
 		if(vmode == 0) printf("----------------------------------------------------------------------------------\n");
-		printf("Hello from GameIdentifier !\n");
+		printf("Hello from game_identifier !\n");
 	}
 
 	if(GameTitle == 0) {
@@ -98,7 +98,7 @@ void GameIdentifier(unsigned char *inbuf)
 		printf("fix_game      = %d\n", fix_game);
 		printf("deny_vmode    = %d\n", deny_vmode);
 		printf("GameHasCheats = %d\n", GameHasCheats);
-		printf("GameIdentifier says goodbye.\n");
+		printf("game_identifier says goodbye.\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
 
@@ -108,7 +108,7 @@ void GameIdentifier(unsigned char *inbuf)
 	}
 }
 
-void GameFixer(unsigned char *inbuf)
+void game_fixer(unsigned char *inbuf)
 {
 	int ptr;
 
@@ -118,7 +118,7 @@ void GameFixer(unsigned char *inbuf)
 				if(inbuf[ptr] == 0x78 && inbuf[ptr+1] == 0x26 && inbuf[ptr+2] == 0x43 && inbuf[ptr+3] == 0x8C) inbuf[ptr] = 0x74;
 				if(inbuf[ptr] == 0xE8 && inbuf[ptr+1] == 0x75 && inbuf[ptr+2] == 0x06 && inbuf[ptr+3] == 0x80) {
 					inbuf[ptr-8] = 0x07;
-					printf("GameFixer : Disc Swap Patched\n");
+					printf("game_fixer : Disc Swap Patched\n");
 					GameFixed = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
@@ -128,7 +128,7 @@ void GameFixer(unsigned char *inbuf)
 	}
 }
 
-void GameTrainer(unsigned char *inbuf)
+void game_trainer(unsigned char *inbuf)
 {
 	int ptr;
 
@@ -137,7 +137,7 @@ void GameTrainer(unsigned char *inbuf)
 			if(GameTitle == 1) {
 				if(inbuf[ptr] == 0x7C && inbuf[ptr+1] == 0x16 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
-					printf("GameTrainer : Test Save System Enabled\n");
+					printf("game_trainer : Test Save System Enabled\n");
 					GameTrained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
@@ -146,7 +146,7 @@ void GameTrainer(unsigned char *inbuf)
 			if(GameTitle == 2) {
 				if(inbuf[ptr] == 0x9C && inbuf[ptr+1] == 0x19 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
-					printf("GameTrainer : Test Save System Enabled\n");
+					printf("game_trainer : Test Save System Enabled\n");
 					GameTrained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
@@ -155,7 +155,7 @@ void GameTrainer(unsigned char *inbuf)
 			if(GameTitle == 3) {
 				if(inbuf[ptr] == 0x84 && inbuf[ptr+1] == 0x19 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
-					printf("GameTrainer : Test Save System Enabled\n");
+					printf("game_trainer : Test Save System Enabled\n");
 					GameTrained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
@@ -165,7 +165,7 @@ void GameTrainer(unsigned char *inbuf)
 	}
 }
 
-void NTSCpatcher(unsigned char *inbuf, int tracker)
+void NTSC_patcher(unsigned char *inbuf, int tracker)
 {
 	int ptr;
 
@@ -173,7 +173,7 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 		if((inbuf[ptr] == 0x13 && inbuf[ptr+1] == 0x00 && (inbuf[ptr+2] == 0x90 || inbuf[ptr+2] == 0x91) && inbuf[ptr+3] == 0x24) && (inbuf[ptr+4] == 0x10 && inbuf[ptr+5] == 0x00 && (inbuf[ptr+6] == 0x90 || inbuf[ptr+6] == 0x91) && inbuf[ptr+7] == 0x24)) {
 			// ?? 00 90 24 ?? 00 90 24 || ?? 00 91 24 ?? 00 91 24 || ?? 00 91 24 ?? 00 90 24 || ?? 00 90 24 ?? 00 91 24
 			printf("Y-Pos pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
-			inbuf[ptr] = 0xF8;		// 2013/05/16, v2.0 : Also apply the fix here, in case NTSCpatcher cannot find/patch the video mode
+			inbuf[ptr] = 0xF8;		// 2013/05/16, v2.0 : Also apply the fix here, in case NTSC_patcher cannot find/patch the video mode
 			inbuf[ptr+1] = 0xFF;	// 2013/05/16, v2.0 : //
 			inbuf[ptr+4] = 0xF8;
 			inbuf[ptr+5] = 0xFF;
@@ -200,7 +200,7 @@ void NTSCpatcher(unsigned char *inbuf, int tracker)
 	}
 }
 
-int GetFileSize(char *file_name)
+int get_file_size(char *file_name)
 {
 	FILE *file_handle;
 	int status;
@@ -227,7 +227,7 @@ int GetFileSize(char *file_name)
 	return size;
 }
 
-int EvaluateArg(const char *arg)
+int evaluate_arg(const char *arg)
 {
 	int handled = 1;
 
@@ -246,7 +246,7 @@ int EvaluateArg(const char *arg)
 }
 
 //Check that file has correct naming and that it actually exists
-int isCue(const char *file_name)
+int is_cue(const char *file_name)
 {
 	FILE *file_handle;
 	char *cue_loc;
@@ -270,7 +270,7 @@ int isCue(const char *file_name)
 	return 0;
 }
 
-int ConvertFileEndingToVcd(const char *file_name)
+int convert_file_ending_to_vcd(const char *file_name)
 {
 	char *cue_loc;
 
@@ -407,14 +407,14 @@ int main(int argc, char **argv)
 	//Parse commands
 	for (i = 1; i < argc; i++) {
 		//Always assume that the first non command argument given is the input .cue file"
-		if (!EvaluateArg(argv[i]) && (cue_name == NULL)) {
+		if (!evaluate_arg(argv[i]) && (cue_name == NULL)) {
 			cue_name = strdup(argv[i]);
 		} else {
 			vcd_name = strdup(argv[i]);
 		}
 	}
 
-	if (isCue(cue_name) == 0) {
+	if (is_cue(cue_name) == 0) {
 		printf("input .cue file: %s did not exist\n", cue_name);
 		return 0;
 	}
@@ -427,7 +427,7 @@ int main(int argc, char **argv)
 			return 0;
 		}
 
-		if (ConvertFileEndingToVcd(vcd_name)) {
+		if (convert_file_ending_to_vcd(vcd_name)) {
 			printf("Error: Failed to change file ending to .VCD\n");
 			return 0;
 		}
@@ -447,7 +447,7 @@ int main(int argc, char **argv)
 	}
 
 
-	cue_size = GetFileSize(cue_name);
+	cue_size = get_file_size(cue_name);
 	if (cue_size < 0) {
 		printf("Failed to open cuefile %s, error %s\n", argv[1], strerror(errno));
 		return 0;
@@ -981,7 +981,7 @@ int main(int argc, char **argv)
 	}
 	free(cue_buf);
 
-	bin_size = GetFileSize(bin_path);
+	bin_size = get_file_size(bin_path);
 	if (bin_size < 0) {
 		free(bin_path);
 		free(headerbuf);
@@ -1082,20 +1082,20 @@ int main(int argc, char **argv)
 			}
 			fread(outbuf, HEADERSIZE, 1, bin_file);
 			if(i == 0) {
-				GameIdentifier(outbuf);
+				game_identifier(outbuf);
 			}
 			if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
-				printf("GameTrainer is ON\n");
+				printf("game_trainer is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
 			if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) {
-				GameTrainer(outbuf);
+				game_trainer(outbuf);
 			}
 			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) {
-				GameFixer(outbuf);
+				game_fixer(outbuf);
 			}
 			if(vmode == 1 && i <= daTrack_ptr) {
-				NTSCpatcher(outbuf, i);
+				NTSC_patcher(outbuf, i);
 			}
 			if(i + HEADERSIZE >= bin_size) {
 				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
