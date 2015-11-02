@@ -2,7 +2,6 @@
 	Last modified : 2013/05/16
 */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +23,7 @@ int trainer = 0; // User command status (trainer)
 int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
 
 int sector_count; // Calculated number of sectors
-int pregap_count = 0;; // Number of "PREGAP" occurrences in the cue
+int pregap_count = 0; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
 int gap_more = 0; // User command status (gap++)
 int gap_less = 0; // User command status (gap--)
