@@ -16,8 +16,6 @@
   const int debug = 0;
 #endif
 
-const int batch = 0;			// Else than zero, user prompt is disabled and CDRWIN image fix is ENABLED. Doesn't halt on anything. Suitable for batch execution.
-
 const int SECTORSIZE = 2352; // Sector size
 const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
