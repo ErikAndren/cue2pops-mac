@@ -179,7 +179,9 @@ void NTSC_patcher(unsigned char *inbuf, int tracker)
 			printf("----------------------------------------------------------------------------------\n");
 		} else if(inbuf[ptr+2] != 0xBD && inbuf[ptr+3] != 0x27 && inbuf[ptr+4] == 0x08 && inbuf[ptr+5] == 0x00 && inbuf[ptr+6] == 0xE0 && inbuf[ptr+7] == 0x03 && inbuf[ptr+14] == 0x02 && inbuf[ptr+15] == 0x3C && inbuf[ptr+18] == 0x42 && inbuf[ptr+19] == 0x8C && inbuf[ptr+20] == 0x08 && inbuf[ptr+21] == 0x00 && inbuf[ptr+22] == 0xE0 && inbuf[ptr+23] == 0x03 && inbuf[ptr+24] == 0x00 && inbuf[ptr+25] == 0x00 && inbuf[ptr+26] == 0x00 && inbuf[ptr+27] == 0x00 && ((inbuf[ptr+2] == 0x24 && inbuf[ptr+3] == 0xAC) || (inbuf[ptr+6] == 0x24 && inbuf[ptr+7] == 0xAC) || (inbuf[ptr+10] == 0x24 && inbuf[ptr+11] == 0xAC))) {
 			// ?? ?? ?? ?? 08 00 E0 03 ?? ?? ?? ?? ?? ?? 02 3C ?? ?? 42 8C 08 00 E0 03 00 00 00 00
-			if(deny_vmode != 0) printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
+			if(deny_vmode != 0) {
+				printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
+			}
 			if(deny_vmode == 0) {
 				printf("VMODE pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + ptr, (tracker + ptr) / SECTORSIZE, HEADERSIZE + tracker + ptr);
 				inbuf[ptr+12] = 0x00;
@@ -190,9 +192,13 @@ void NTSC_patcher(unsigned char *inbuf, int tracker)
 				inbuf[ptr+17] = 0x00;
 				inbuf[ptr+18] = 0x02;
 				inbuf[ptr+19] = 0x24;
-				if(inbuf[ptr+2] == 0x24 && inbuf[ptr+3] == 0xAC) inbuf[ptr+2] = 0x20;
-				else if(inbuf[ptr+6] == 0x24 && inbuf[ptr+7] == 0xAC) inbuf[ptr+6] = 0x20;
-				else if(inbuf[ptr+10] == 0x24 && inbuf[ptr+11] == 0xAC) inbuf[ptr+10] = 0x20;
+				if(inbuf[ptr+2] == 0x24 && inbuf[ptr+3] == 0xAC) {
+					inbuf[ptr+2] = 0x20;
+				} else if(inbuf[ptr+6] == 0x24 && inbuf[ptr+7] == 0xAC) {
+					inbuf[ptr+6] = 0x20;
+				} else if(inbuf[ptr+10] == 0x24 && inbuf[ptr+11] == 0xAC) {
+					inbuf[ptr+10] = 0x20;
+				}
 			}
 			printf("----------------------------------------------------------------------------------\n");
 		}
