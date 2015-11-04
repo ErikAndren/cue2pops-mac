@@ -30,10 +30,10 @@ int gap_less = 0; // User command status (gap--)
 int deny_vmode = 0; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
 int fix_game = 0;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
 
-int GameHasCheats = 0;	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... .
-int GameTitle = 0;
-int GameTrained = 0;
-int GameFixed = 0;
+int game_has_cheats = 0;	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... .
+int game_title = 0;
+int game_trained = 0;
+int game_fixed = 0;
 
 extern int errno;
 
@@ -46,14 +46,14 @@ void game_identifier(unsigned char *inbuf)
 		printf("Hello from game_identifier !\n");
 	}
 
-	if(GameTitle == 0) {
+	if(game_title == 0) {
 		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'E' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '-' && inbuf[ptr+5] == '0' && inbuf[ptr+6] == '0' && inbuf[ptr+7] == '3' && inbuf[ptr+8] == '4' && inbuf[ptr+9] == '4' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' ' && inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
 				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
 				printf("Crash Bandicoot [SCES-00344]\n");
 				deny_vmode ++; // 2013/05/16 - v2.0 : The NTSC patch fucks up the framerate badly, so now it's skipped
-				GameTitle = 1;
-				GameHasCheats = 1;
+				game_title = 1;
+				game_has_cheats = 1;
 				fix_game = 0;
 				break;
 			}
@@ -61,8 +61,8 @@ void game_identifier(unsigned char *inbuf)
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'U' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '-' && inbuf[ptr+5] == '9' && inbuf[ptr+6] == '4' && inbuf[ptr+7] == '9' && inbuf[ptr+8] == '0' && inbuf[ptr+9] == '0' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' '&& inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
 				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
 				printf("Crash Bandicoot [SCUS-94900]\n");
-				GameTitle = 2;
-				GameHasCheats = 1;
+				game_title = 2;
+				game_has_cheats = 1;
 				fix_game = 0;
 				break;
 			}
@@ -70,8 +70,8 @@ void game_identifier(unsigned char *inbuf)
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'P' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '_' && inbuf[ptr+5] == '1' && inbuf[ptr+6] == '0' && inbuf[ptr+7] == '0' && inbuf[ptr+8] == '3' && inbuf[ptr+9] == '1' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' ' && inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
 				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
 				printf("Crash Bandicoot [SCPS-10031]\n");
-				GameTitle = 3;
-				GameHasCheats = 1;
+				game_title = 3;
+				game_has_cheats = 1;
 				fix_game = 0;
 				break;
 			}
@@ -79,29 +79,29 @@ void game_identifier(unsigned char *inbuf)
 			if(inbuf[ptr] == ' ' && inbuf[ptr+1] == '1' && inbuf[ptr+2] == '9' && inbuf[ptr+3] == '9' && inbuf[ptr+4] == '9' && inbuf[ptr+5] == '0' && inbuf[ptr+6] == '8' && inbuf[ptr+7] == '1' && inbuf[ptr+8] == '6' && inbuf[ptr+9] == '1' && inbuf[ptr+10] == '4' && inbuf[ptr+11] == '1' && inbuf[ptr+12] == '6' && inbuf[ptr+13] == '3' && inbuf[ptr+14] == '3' && inbuf[ptr+15] == '0' && inbuf[ptr+16] == '0' && inbuf[ptr+17] == '$') {
 				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
 				printf("Metal Gear Solid : Special Missions [SLES-02136]\n");
-				GameTitle = 4;
-				GameHasCheats = 0;
+				game_title = 4;
+				game_has_cheats = 0;
 				fix_game = 1;
 				break;
 			}
 		}
 	}
 
-	if(GameTitle != 0 && fix_game == 1) printf("GameFixer is ON\n");
-	if(GameTitle != 0 && trainer == 1 && GameHasCheats == 0) printf("There is no cheat for this title\n");
-	if(GameTitle != 0 && deny_vmode != 0 && vmode == 1) printf("VMODE patching is disabled for this title\n");
-	if(GameTitle != 0 && debug == 0) printf("----------------------------------------------------------------------------------\n");
+	if(game_title != 0 && fix_game == 1) printf("GameFixer is ON\n");
+	if(game_title != 0 && trainer == 1 && game_has_cheats == 0) printf("There is no cheat for this title\n");
+	if(game_title != 0 && deny_vmode != 0 && vmode == 1) printf("VMODE patching is disabled for this title\n");
+	if(game_title != 0 && debug == 0) printf("----------------------------------------------------------------------------------\n");
 
 	if(debug != 0) {
-		printf("GameTitle     = %d\n", GameTitle);
+		printf("game_title     = %d\n", game_title);
 		printf("fix_game      = %d\n", fix_game);
 		printf("deny_vmode    = %d\n", deny_vmode);
-		printf("GameHasCheats = %d\n", GameHasCheats);
+		printf("game_has_cheats = %d\n", game_has_cheats);
 		printf("game_identifier says goodbye.\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
 
-	if(GameTitle == 0 && trainer == 1) {
+	if(game_title == 0 && trainer == 1) {
 		printf("Unknown game, no fix/trainer enabled\n");
 		printf("Continuing...\n");
 	}
@@ -111,14 +111,14 @@ void game_fixer(unsigned char *inbuf)
 {
 	int ptr;
 
-	if(GameFixed == 0) {
+	if(game_fixed == 0) {
 		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
-			if(GameTitle == 4) {
+			if(game_title == 4) {
 				if(inbuf[ptr] == 0x78 && inbuf[ptr+1] == 0x26 && inbuf[ptr+2] == 0x43 && inbuf[ptr+3] == 0x8C) inbuf[ptr] = 0x74;
 				if(inbuf[ptr] == 0xE8 && inbuf[ptr+1] == 0x75 && inbuf[ptr+2] == 0x06 && inbuf[ptr+3] == 0x80) {
 					inbuf[ptr-8] = 0x07;
 					printf("game_fixer : Disc Swap Patched\n");
-					GameFixed = 1;
+					game_fixed = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
@@ -131,31 +131,31 @@ void game_trainer(unsigned char *inbuf)
 {
 	int ptr;
 
-	if(GameTrained == 0) {
+	if(game_trained == 0) {
 		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
-			if(GameTitle == 1) {
+			if(game_title == 1) {
 				if(inbuf[ptr] == 0x7C && inbuf[ptr+1] == 0x16 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
 					printf("game_trainer : Test Save System Enabled\n");
-					GameTrained = 1;
+					game_trained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
 			}
-			if(GameTitle == 2) {
+			if(game_title == 2) {
 				if(inbuf[ptr] == 0x9C && inbuf[ptr+1] == 0x19 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
 					printf("game_trainer : Test Save System Enabled\n");
-					GameTrained = 1;
+					game_trained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
 			}
-			if(GameTitle == 3) {
+			if(game_title == 3) {
 				if(inbuf[ptr] == 0x84 && inbuf[ptr+1] == 0x19 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
 					printf("game_trainer : Test Save System Enabled\n");
-					GameTrained = 1;
+					game_trained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
@@ -1113,14 +1113,14 @@ int main(int argc, char **argv)
 			if(i == 0) {
 				game_identifier(outbuf);
 			}
-			if(GameTitle >= 0 && GameHasCheats == 1 && trainer == 1 && i == 0) {
+			if(game_title >= 0 && game_has_cheats == 1 && trainer == 1 && i == 0) {
 				printf("game_trainer is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
-			if(GameTitle >= 0 && GameTrained == 0 && GameHasCheats == 1 && trainer == 1 && i <= daTrack_ptr) {
+			if(game_title >= 0 && game_trained == 0 && game_has_cheats == 1 && trainer == 1 && i <= daTrack_ptr) {
 				game_trainer(outbuf);
 			}
-			if(GameTitle >= 0 && GameFixed == 0 && fix_game == 1 && i <= daTrack_ptr) {
+			if(game_title >= 0 && game_fixed == 0 && fix_game == 1 && i <= daTrack_ptr) {
 				game_fixer(outbuf);
 			}
 			if(vmode == 1 && i <= daTrack_ptr) {
@@ -1133,11 +1133,11 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	if(GameTitle >= 0 && fix_game == 1 && GameFixed == 0) {
+	if(game_title >= 0 && fix_game == 1 && game_fixed == 0) {
 		printf("COULD NOT APPLY THE GAME FIXE(S) : No data to patch found\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
-	if(GameTitle >= 0 && GameHasCheats == 1 && GameTrained == 0 && trainer == 1) {
+	if(game_title >= 0 && game_has_cheats == 1 && game_trained == 0 && trainer == 1) {
 		printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
