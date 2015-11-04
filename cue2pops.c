@@ -18,107 +18,128 @@
 const int SECTORSIZE = 2352; // Sector size
 const int HEADERSIZE = 0x100000; // POPS header size. Also used as buffer size for caching BIN data in file output operations
 
-int vmode = 0; // User command status (vmode)
-int trainer = 0; // User command status (trainer)
-
-int sector_count; // Calculated number of sectors
 int pregap_count = 0; // Number of "PREGAP" occurrences in the cue
 int postgap_count = 0; // Number of "POSTGAP" occurrences in the cue
-int gap_more = 0; // User command status (gap++)
-int gap_less = 0; // User command status (gap--)
 
-int deny_vmode = 0; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
-int fix_game = 0;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
+typedef struct {
+	int vmode; // User command status (vmode)
+	int trainer; // User command status (trainer)
 
-int game_has_cheats = 0;	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... .
-int game_title = 0;
-int game_trained = 0;
-int game_fixed = 0;
+	int gap_more; // User command status (gap++)
+	int gap_less; // User command status (gap--)
+
+	int deny_vmode; 	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Makes NTSCpatcher skip the PAL->NTSC patch.
+	int fix_game;		// 2013/05/16 - v2.0 : Triggered by GameIdentifier... Enables GameFixer .
+
+	int game_has_cheats;	// 2013/05/16 - v2.0 : Triggered by GameIdentifier... .
+	int game_title;
+	int game_trained;
+	int game_fixed;
+} parameters;
+
 
 extern int errno;
 
-void game_identifier(unsigned char *inbuf)
+void game_identifier(unsigned char *inbuf, parameters *p)
 {
 	int ptr;
 
 	if(debug != 0) {
-		if(vmode == 0) printf("----------------------------------------------------------------------------------\n");
-		printf("Hello from game_identifier !\n");
+		if(p->vmode == 0) {
+			printf("----------------------------------------------------------------------------------\n");
+		}
+		printf("Hello from game_identifier!\n");
 	}
 
-	if(game_title == 0) {
+	if(p->game_title == 0) {
 		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'E' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '-' && inbuf[ptr+5] == '0' && inbuf[ptr+6] == '0' && inbuf[ptr+7] == '3' && inbuf[ptr+8] == '4' && inbuf[ptr+9] == '4' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' ' && inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
-				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
+				if(debug == 0) {
+					printf("----------------------------------------------------------------------------------\n");
+				}
 				printf("Crash Bandicoot [SCES-00344]\n");
-				deny_vmode ++; // 2013/05/16 - v2.0 : The NTSC patch fucks up the framerate badly, so now it's skipped
-				game_title = 1;
-				game_has_cheats = 1;
-				fix_game = 0;
+				p->deny_vmode++; // 2013/05/16 - v2.0 : The NTSC patch fucks up the framerate badly, so now it's skipped
+				p->game_title = 1;
+				p->game_has_cheats = 1;
+				p->fix_game = 0;
 				break;
 			}
 			/* -------------------------------- */
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'U' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '-' && inbuf[ptr+5] == '9' && inbuf[ptr+6] == '4' && inbuf[ptr+7] == '9' && inbuf[ptr+8] == '0' && inbuf[ptr+9] == '0' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' '&& inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
-				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
+				if(debug == 0) {
+					printf("----------------------------------------------------------------------------------\n");
+				}
 				printf("Crash Bandicoot [SCUS-94900]\n");
-				game_title = 2;
-				game_has_cheats = 1;
-				fix_game = 0;
+				p->game_title = 2;
+				p->game_has_cheats = 1;
+				p->fix_game = 0;
 				break;
 			}
 			/* -------------------------------- */
 			if(inbuf[ptr] == 'S' && inbuf[ptr+1] == 'C' && inbuf[ptr+2] == 'P' && inbuf[ptr+3] == 'S' && inbuf[ptr+4] == '_' && inbuf[ptr+5] == '1' && inbuf[ptr+6] == '0' && inbuf[ptr+7] == '0' && inbuf[ptr+8] == '3' && inbuf[ptr+9] == '1' && inbuf[ptr+10] == ' ' && inbuf[ptr+11] == ' ' && inbuf[ptr+12] == ' ' && inbuf[ptr+13] == ' ' && inbuf[ptr+14] == ' ' && inbuf[ptr+15] == ' ') {
-				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
+				if(debug == 0) {
+					printf("----------------------------------------------------------------------------------\n");
+				}
 				printf("Crash Bandicoot [SCPS-10031]\n");
-				game_title = 3;
-				game_has_cheats = 1;
-				fix_game = 0;
+				p->game_title = 3;
+				p->game_has_cheats = 1;
+				p->fix_game = 0;
 				break;
 			}
 			/* -------------------------------- */
 			if(inbuf[ptr] == ' ' && inbuf[ptr+1] == '1' && inbuf[ptr+2] == '9' && inbuf[ptr+3] == '9' && inbuf[ptr+4] == '9' && inbuf[ptr+5] == '0' && inbuf[ptr+6] == '8' && inbuf[ptr+7] == '1' && inbuf[ptr+8] == '6' && inbuf[ptr+9] == '1' && inbuf[ptr+10] == '4' && inbuf[ptr+11] == '1' && inbuf[ptr+12] == '6' && inbuf[ptr+13] == '3' && inbuf[ptr+14] == '3' && inbuf[ptr+15] == '0' && inbuf[ptr+16] == '0' && inbuf[ptr+17] == '$') {
-				if(debug == 0) printf("----------------------------------------------------------------------------------\n");
+				if(debug == 0) {
+					printf("----------------------------------------------------------------------------------\n");
+				}
 				printf("Metal Gear Solid : Special Missions [SLES-02136]\n");
-				game_title = 4;
-				game_has_cheats = 0;
-				fix_game = 1;
+				p->game_title = 4;
+				p->game_has_cheats = 0;
+				p->fix_game = 1;
 				break;
 			}
 		}
 	}
 
-	if(game_title != 0 && fix_game == 1) printf("GameFixer is ON\n");
-	if(game_title != 0 && trainer == 1 && game_has_cheats == 0) printf("There is no cheat for this title\n");
-	if(game_title != 0 && deny_vmode != 0 && vmode == 1) printf("VMODE patching is disabled for this title\n");
-	if(game_title != 0 && debug == 0) printf("----------------------------------------------------------------------------------\n");
+	if(p->game_title != 0 && p->fix_game == 1) {
+		printf("GameFixer is ON\n");
+	}
+	if(p->game_title != 0 && p->trainer == 1 && p->game_has_cheats == 0) {
+		printf("There is no cheat for this title\n");
+	}
+	if(p->game_title != 0 && p->deny_vmode != 0 && p->vmode == 1) {
+		printf("VMODE patching is disabled for this title\n");
+	}
+	if(p->game_title != 0 && debug == 0) {
+		printf("----------------------------------------------------------------------------------\n");
+	}
 
 	if(debug != 0) {
-		printf("game_title     = %d\n", game_title);
-		printf("fix_game      = %d\n", fix_game);
-		printf("deny_vmode    = %d\n", deny_vmode);
-		printf("game_has_cheats = %d\n", game_has_cheats);
+		printf("game_title     = %d\n", p->game_title);
+		printf("fix_game      = %d\n", p->fix_game);
+		printf("deny_vmode    = %d\n", p->deny_vmode);
+		printf("game_has_cheats = %d\n", p->game_has_cheats);
 		printf("game_identifier says goodbye.\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
 
-	if(game_title == 0 && trainer == 1) {
+	if(p->game_title == 0 && p->trainer == 1) {
 		printf("Unknown game, no fix/trainer enabled\n");
 		printf("Continuing...\n");
 	}
 }
 
-void game_fixer(unsigned char *inbuf)
+void game_fixer(unsigned char *inbuf, parameters *p)
 {
 	int ptr;
 
-	if(game_fixed == 0) {
+	if(p->game_fixed == 0) {
 		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
-			if(game_title == 4) {
+			if(p->game_title == 4) {
 				if(inbuf[ptr] == 0x78 && inbuf[ptr+1] == 0x26 && inbuf[ptr+2] == 0x43 && inbuf[ptr+3] == 0x8C) inbuf[ptr] = 0x74;
 				if(inbuf[ptr] == 0xE8 && inbuf[ptr+1] == 0x75 && inbuf[ptr+2] == 0x06 && inbuf[ptr+3] == 0x80) {
 					inbuf[ptr-8] = 0x07;
 					printf("game_fixer : Disc Swap Patched\n");
-					game_fixed = 1;
+					p->game_fixed = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
@@ -127,35 +148,35 @@ void game_fixer(unsigned char *inbuf)
 	}
 }
 
-void game_trainer(unsigned char *inbuf)
+void game_trainer(unsigned char *inbuf, parameters *p)
 {
 	int ptr;
 
-	if(game_trained == 0) {
+	if(p->game_trained == 0) {
 		for(ptr = 0; ptr < HEADERSIZE; ptr += 4) {
-			if(game_title == 1) {
+			if(p->game_title == 1) {
 				if(inbuf[ptr] == 0x7C && inbuf[ptr+1] == 0x16 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
 					printf("game_trainer : Test Save System Enabled\n");
-					game_trained = 1;
+					p->game_trained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
 			}
-			if(game_title == 2) {
+			if(p->game_title == 2) {
 				if(inbuf[ptr] == 0x9C && inbuf[ptr+1] == 0x19 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
 					printf("game_trainer : Test Save System Enabled\n");
-					game_trained = 1;
+					p->game_trained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
 			}
-			if(game_title == 3) {
+			if(p->game_title == 3) {
 				if(inbuf[ptr] == 0x84 && inbuf[ptr+1] == 0x19 && inbuf[ptr+2] == 0x20 && inbuf[ptr+3] == 0xAC) {
 					inbuf[ptr+2] = 0x22;
 					printf("game_trainer : Test Save System Enabled\n");
-					game_trained = 1;
+					p->game_trained = 1;
 					printf("----------------------------------------------------------------------------------\n");
 					break;
 				}
@@ -164,7 +185,7 @@ void game_trainer(unsigned char *inbuf)
 	}
 }
 
-void NTSC_patcher(unsigned char *inbuf, int tracker)
+void NTSC_patcher(unsigned char *inbuf, int tracker, parameters *p)
 {
 	int i;
 
@@ -179,10 +200,10 @@ void NTSC_patcher(unsigned char *inbuf, int tracker)
 			printf("----------------------------------------------------------------------------------\n");
 		} else if(inbuf[i+2] != 0xBD && inbuf[i+3] != 0x27 && inbuf[i+4] == 0x08 && inbuf[i+5] == 0x00 && inbuf[i+6] == 0xE0 && inbuf[i+7] == 0x03 && inbuf[i+14] == 0x02 && inbuf[i+15] == 0x3C && inbuf[i+18] == 0x42 && inbuf[i+19] == 0x8C && inbuf[i+20] == 0x08 && inbuf[i+21] == 0x00 && inbuf[i+22] == 0xE0 && inbuf[i+23] == 0x03 && inbuf[i+24] == 0x00 && inbuf[i+25] == 0x00 && inbuf[i+26] == 0x00 && inbuf[i+27] == 0x00 && ((inbuf[i+2] == 0x24 && inbuf[i+3] == 0xAC) || (inbuf[i+6] == 0x24 && inbuf[i+7] == 0xAC) || (inbuf[i+10] == 0x24 && inbuf[i+11] == 0xAC))) {
 			// ?? ?? ?? ?? 08 00 E0 03 ?? ?? ?? ?? ?? ?? 02 3C ?? ?? 42 8C 08 00 E0 03 00 00 00 00
-			if(deny_vmode != 0) {
+			if(p->deny_vmode != 0) {
 				printf("Skipped VMODE pattern at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + i, (tracker + i) / SECTORSIZE, HEADERSIZE + tracker + i);
 			}
-			if(deny_vmode == 0) {
+			if(p->deny_vmode == 0) {
 				printf("VMODE pattern found at dump offset 0x%X / LBA %d (VCD offset 0x%X)\n", tracker + i, (tracker + i) / SECTORSIZE, HEADERSIZE + tracker + i);
 				inbuf[i+12] = 0x00;
 				inbuf[i+13] = 0x00;
@@ -232,18 +253,18 @@ int get_file_size(char *file_name)
 	return size;
 }
 
-int evaluate_arg(const char *arg)
+int evaluate_arg(const char *arg, parameters *p)
 {
 	int handled = 1;
 
 	if(!strcmp(arg, "gap++")) {
-		gap_more = 1;
+		p->gap_more = 1;
 	} else if(!strcmp(arg, "gap--")) {
-		gap_less = 1;
+		p->gap_less = 1;
 	} else if(!strcmp(arg, "vmode")) {
-		vmode = 1;
+		p->vmode = 1;
 	} else if(!strcmp(arg, "trainer")) {
-		trainer = 1;
+		p->trainer = 1;
 	} else {
 		handled = 0;
 	}
@@ -296,7 +317,7 @@ int convert_file_ending_to_vcd(const char *file_name)
 	return -2;
 }
 
-int get_lead_out(unsigned char *hbuf, int b_size)
+int get_lead_out(unsigned char *hbuf, int b_size, int *sector_count)
 {
 	/* MSF is calculated from the .bin size so DO NOT APPLY gap++/gap-- ADJUSTMENTS IN THIS FUNCTION ! */
 
@@ -306,16 +327,16 @@ int get_lead_out(unsigned char *hbuf, int b_size)
 	int leadoutS; // Calculated Lead-Out __:SS:__
 	int leadoutF; // Calculated Lead-Out __:__:FF
 
-	sector_count = (b_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the b_size to sector count
-	leadoutM = sector_count / 4500;
-	leadoutS = (sector_count - leadoutM * 4500) / 75;
-	leadoutF = sector_count - leadoutM * 4500 - leadoutS * 75;
+	*sector_count = (b_size / SECTORSIZE) + (150 * (pregap_count + postgap_count)) + 150; // Convert the b_size to sector count
+	leadoutM = *sector_count / 4500;
+	leadoutS = (*sector_count - leadoutM * 4500) / 75;
+	leadoutF = *sector_count - leadoutM * 4500 - leadoutS * 75;
 	if(debug != 0) {
 		printf("Calculated Lead-Out MSF = %02d:%02d:%02d\n", leadoutM, leadoutS, leadoutF);
 	}
-	sector_count = (b_size / SECTORSIZE) + (150 * (pregap_count + postgap_count));
+	*sector_count = (b_size / SECTORSIZE) + (150 * (pregap_count + postgap_count));
 	if(debug != 0) {
-		printf("Calculated Sector Count = %08Xh (%i)\n", sector_count, sector_count);
+		printf("Calculated Sector Count = %08Xh (%i)\n", *sector_count, *sector_count);
 	}
 
 	// Additonally we can add a dbg printf of the sector count that's written in sector 16 for verification. Mmmm kinda waste of time
@@ -372,6 +393,10 @@ int main(int argc, char **argv)
 
 	int track_count = 0; // Number of "TRACK " occurrences in the cue
 	int fix_CDRWIN = 0; // Special CDRWIN pregap injection status
+	int sector_count; // Calculated number of sectors
+
+	parameters params;
+	memset(&params, 0, sizeof(params));
 
 	printf("\nBIN/CUE to IMAGE0.VCD conversion tool v2.0\n");
 	printf("Last modified: %s\n\n", __DATE__);
@@ -413,7 +438,7 @@ int main(int argc, char **argv)
 	//Parse commands
 	for (i = 1; i < argc; i++) {
 		//Always assume that the first non command argument given is the input .cue file"
-		if (!evaluate_arg(argv[i]) && (cue_name == NULL)) {
+		if (!evaluate_arg(argv[i], &params) && (cue_name == NULL)) {
 			cue_name = strdup(argv[i]);
 		} else {
 			vcd_name = strdup(argv[i]);
@@ -439,17 +464,17 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if(gap_more == 1 && gap_less == 1) { // User is dumb
+	if(params.gap_more == 1 && params.gap_less == 1) { // User is dumb
 		printf("Syntax Error : Conflicting gap++/gap-- arguments.\n\n");
 		return 0;
 	}
 
 	if(debug != 0) {
 		printf("CMD SWITCHES :\n");
-		printf("gap_more   = %d\n", gap_more);
-		printf("gap_less   = %d\n", gap_less);
-		printf("vmode      = %d\n", vmode);
-		printf("trainer    = %d\n\n", trainer);
+		printf("gap_more   = %d\n", params.gap_more);
+		printf("gap_less   = %d\n", params.gap_less);
+		printf("vmode      = %d\n", params.vmode);
+		printf("trainer    = %d\n\n", params.trainer);
 	}
 
 
@@ -914,7 +939,7 @@ int main(int argc, char **argv)
 
 				/* 2013/05/16 - v2.0, gap++ */
 
-				if(gap_more == 1) {
+				if(params.gap_more == 1) {
 					/* INDEX 00 : + 2 SEC */
 					if((i != 0) && (headerbuf[header_ptr + 4] == 0x08 || headerbuf[header_ptr + 4] == 0x09 || headerbuf[header_ptr + 4] == 0x18 || headerbuf[header_ptr + 4] == 0x19 || headerbuf[header_ptr + 4] == 0x28 || headerbuf[header_ptr + 4] == 0x29 || headerbuf[header_ptr + 4] == 0x38 || headerbuf[header_ptr + 4] == 0x39 || headerbuf[header_ptr + 4] == 0x48 || headerbuf[header_ptr + 4] == 0x49) && (headerbuf[header_ptr + 4] != 0x58 || headerbuf[header_ptr + 4] != 0x59)) {
 						headerbuf[header_ptr + 4] += 8; // HEX -> DEC (+ 2 SEC)
@@ -961,7 +986,7 @@ int main(int argc, char **argv)
 
 				/* 2013/05/16 - v2.0, gap-- */
 
-				if(gap_less == 1) {
+				if(params.gap_less == 1) {
 					/* INDEX 00 : - 2 SEC */
 					if((i != 0) && (headerbuf[header_ptr + 4] == 0x10 || headerbuf[header_ptr + 4] == 0x11 || headerbuf[header_ptr + 4] == 0x20 || headerbuf[header_ptr + 4] == 0x21 || headerbuf[header_ptr + 4] == 0x30 || headerbuf[header_ptr + 4] == 0x31 || headerbuf[header_ptr + 4] == 0x40 || headerbuf[header_ptr + 4] == 0x41 || headerbuf[header_ptr + 4] == 0x50 || headerbuf[header_ptr + 4] == 0x51) && (headerbuf[header_ptr + 4] != 0x00 || headerbuf[header_ptr + 4] != 0x01)) {
 						headerbuf[header_ptr + 4] += 8; // HEX -> DEC (- 2 SEC)
@@ -1017,7 +1042,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if(get_lead_out(headerbuf, bin_size) != 0) {
+	if(get_lead_out(headerbuf, bin_size, &sector_count) != 0) {
 		free(bin_path);
 		free(headerbuf);
 		return 0;
@@ -1104,27 +1129,27 @@ int main(int argc, char **argv)
 				printf("Continuing...\n");
 			}
 		} else {
-			if(vmode == 1 && i == 0) {
+			if(params.vmode == 1 && i == 0) {
 				printf("----------------------------------------------------------------------------------\n");
 				printf("NTSC Patcher is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
 			fread(outbuf, HEADERSIZE, 1, bin_file);
 			if(i == 0) {
-				game_identifier(outbuf);
+				game_identifier(outbuf, &params);
 			}
-			if(game_title >= 0 && game_has_cheats == 1 && trainer == 1 && i == 0) {
+			if(params.game_title >= 0 && params.game_has_cheats == 1 && params.trainer == 1 && i == 0) {
 				printf("game_trainer is ON\n");
 				printf("----------------------------------------------------------------------------------\n");
 			}
-			if(game_title >= 0 && game_trained == 0 && game_has_cheats == 1 && trainer == 1 && i <= daTrack_ptr) {
-				game_trainer(outbuf);
+			if(params.game_title >= 0 && params.game_trained == 0 && params.game_has_cheats == 1 && params.trainer == 1 && i <= daTrack_ptr) {
+				game_trainer(outbuf, &params);
 			}
-			if(game_title >= 0 && game_fixed == 0 && fix_game == 1 && i <= daTrack_ptr) {
-				game_fixer(outbuf);
+			if(params.game_title >= 0 && params.game_fixed == 0 && params.fix_game == 1 && i <= daTrack_ptr) {
+				game_fixer(outbuf, &params);
 			}
-			if(vmode == 1 && i <= daTrack_ptr) {
-				NTSC_patcher(outbuf, i);
+			if(params.vmode == 1 && i <= daTrack_ptr) {
+				NTSC_patcher(outbuf, i, &params);
 			}
 			if(i + HEADERSIZE >= bin_size) {
 				fwrite(outbuf, HEADERSIZE - (i + HEADERSIZE - bin_size), 1, vcd_file);
@@ -1133,11 +1158,11 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	if(game_title >= 0 && fix_game == 1 && game_fixed == 0) {
+	if(params.game_title >= 0 && params.fix_game == 1 && params.game_fixed == 0) {
 		printf("COULD NOT APPLY THE GAME FIXE(S) : No data to patch found\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
-	if(game_title >= 0 && game_has_cheats == 1 && game_trained == 0 && trainer == 1) {
+	if(params.game_title >= 0 && params.game_has_cheats == 1 && params.game_trained == 0 && params.trainer == 1) {
 		printf("COULD NOT APPLY THE GAME CHEAT(S) : No data to patch found\n");
 		printf("----------------------------------------------------------------------------------\n");
 	}
